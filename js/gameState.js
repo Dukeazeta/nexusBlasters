@@ -18,7 +18,7 @@ class GameState {
         this.enemySpawnRate = GAME_CONFIG.ENEMY.SPAWN_RATE;
         this.waveTimer = 0;
         this.powerUpSpawnTimer = 0;
-        this.powerUpSpawnRate = 15000; // 15 seconds
+        this.powerUpSpawnRate = GAME_CONFIG.POWERUP.SPAWN_RATE;
         
         // Make this globally accessible for other classes
         window.gameState = this;

@@ -101,6 +101,9 @@ const GAME_CONFIG = {
         SCOUT_SPEED: 150,
         FIGHTER_SPEED: 100
     },
+    POWERUP: {
+        SPAWN_RATE: 8000 // 8 seconds between power-ups
+    },
     BULLET: {
         PLAYER_SPEED: 500,
         PLAYER_RAPID_SPEED: 600,

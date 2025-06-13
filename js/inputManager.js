@@ -46,20 +46,35 @@ class InputManager {
             this.touch.y = (touch.clientY - rect.top) * (this.canvas.height / rect.height);
             this.touch.active = true;
         });
-        
+
         this.canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            const rect = this.canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            this.touch.x = (touch.clientX - rect.left) * (this.canvas.width / rect.width);
-            this.touch.y = (touch.clientY - rect.top) * (this.canvas.height / rect.height);
+            if (e.touches.length > 0) {
+                const rect = this.canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                this.touch.x = (touch.clientX - rect.left) * (this.canvas.width / rect.width);
+                this.touch.y = (touch.clientY - rect.top) * (this.canvas.height / rect.height);
+                this.touch.active = true;
+            }
         });
-        
+
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             this.touch.active = false;
+            // Clear touch position when touch ends to prevent ghost movement
+            this.touch.x = 0;
+            this.touch.y = 0;
+            console.log('Touch ended - cleared touch state');
         });
-        
+
+        this.canvas.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.touch.active = false;
+            this.touch.x = 0;
+            this.touch.y = 0;
+            console.log('Touch cancelled - cleared touch state');
+        });
+
         // Prevent scrolling on touch
         document.addEventListener('touchmove', (e) => {
             e.preventDefault();
@@ -99,6 +114,13 @@ class InputManager {
     // Check if input is active (mouse pressed or touch active)
     isInputActive() {
         return this.mouse.pressed || this.touch.active;
+    }
+
+    // Check if there's any movement input (mouse, touch, or keyboard)
+    hasMovementInput() {
+        const keyMovement = this.getMovementInput();
+        const hasKeyInput = keyMovement.x !== 0 || keyMovement.y !== 0;
+        return this.mouse.pressed || this.touch.active || hasKeyInput;
     }
     
     // Check if a key is currently pressed
@@ -156,7 +178,16 @@ class InputManager {
     reset() {
         this.mouse.pressed = false;
         this.touch.active = false;
+        this.touch.x = 0;
+        this.touch.y = 0;
         this.keys = {};
+    }
+
+    // Force clear touch state (useful for debugging or edge cases)
+    clearTouchState() {
+        this.touch.active = false;
+        this.touch.x = 0;
+        this.touch.y = 0;
     }
     
     // Update method for any per-frame input processing

@@ -44,35 +44,41 @@ class Player {
     }
     
     updateMovement(deltaTime, inputManager, canvasWidth, canvasHeight) {
-        // Get input position for mouse/touch movement
-        const inputPos = inputManager.getInputPosition();
-        
-        // Calculate movement towards input position
-        const dx = inputPos.x - this.x;
-        const dy = inputPos.y - this.y;
-        const distance = Utils.distance(this.x, this.y, inputPos.x, inputPos.y);
-        
-        // Move towards input position if far enough away
-        if (distance > 5) {
-            const moveSpeed = this.speed * this.speedBoost * (deltaTime / 1000);
-            const moveX = (dx / distance) * moveSpeed;
-            const moveY = (dy / distance) * moveSpeed;
-            
-            this.x += moveX;
-            this.y += moveY;
-        }
-        
-        // Alternative keyboard movement
+        const moveSpeed = this.speed * this.speedBoost * (deltaTime / 1000);
+        let moved = false;
+
+        // Handle keyboard movement (always takes priority)
         const keyMovement = inputManager.getMovementInput();
         if (keyMovement.x !== 0 || keyMovement.y !== 0) {
-            const moveSpeed = this.speed * this.speedBoost * (deltaTime / 1000);
             this.x += keyMovement.x * moveSpeed;
             this.y += keyMovement.y * moveSpeed;
+            moved = true;
         }
-        
-        // Keep player in bounds
-        this.x = Utils.clamp(this.x, this.width / 2, canvasWidth - this.width / 2);
-        this.y = Utils.clamp(this.y, this.height / 2, canvasHeight - this.height / 2);
+        // Handle mouse/touch movement (only if no keyboard input and input is active)
+        else if (inputManager.isInputActive()) {
+            const inputPos = inputManager.getInputPosition();
+
+            // Calculate movement towards input position
+            const dx = inputPos.x - this.x;
+            const dy = inputPos.y - this.y;
+            const distance = Utils.distance(this.x, this.y, inputPos.x, inputPos.y);
+
+            // Move towards input position if far enough away and input is active
+            if (distance > 5) {
+                const moveX = (dx / distance) * moveSpeed;
+                const moveY = (dy / distance) * moveSpeed;
+
+                this.x += moveX;
+                this.y += moveY;
+                moved = true;
+            }
+        }
+
+        // Only apply bounds checking if we actually moved
+        if (moved) {
+            this.x = Utils.clamp(this.x, this.width / 2, canvasWidth - this.width / 2);
+            this.y = Utils.clamp(this.y, this.height / 2, canvasHeight - this.height / 2);
+        }
     }
     
     updateAnimation(deltaTime) {
