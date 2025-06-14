@@ -150,6 +150,13 @@ class Player {
         this.muzzleFlashTimer = 0;
         this.muzzleFlashFrame = 1;
 
+        // Play weapon sound effect
+        if (this.rapidFire) {
+            audioManager.playSound('playerRapidFire');
+        } else {
+            audioManager.playSound('playerShoot');
+        }
+
         // Create bullet(s) - this will be handled by the game state
         if (window.gameState) {
             // Shoot from weapon positions (left and right of ship)
@@ -239,8 +246,21 @@ class Player {
     render(ctx) {
         const sprite = assetManager.getSprite('playerShip');
         if (sprite) {
+            // Add glow effect for the ship
+            ctx.save();
+            if (this.shield) {
+                // Stronger glow when shielded
+                ctx.shadowColor = GAME_CONFIG.COLORS.NEXUS_GLOW;
+                ctx.shadowBlur = 15;
+            } else {
+                // Subtle glow normally
+                ctx.shadowColor = GAME_CONFIG.COLORS.VERIFICATION_GREEN;
+                ctx.shadowBlur = 6;
+            }
+
             // Draw the ship
             ctx.drawImage(sprite, this.x - this.width / 2, this.y - this.height / 2);
+            ctx.restore();
 
             // Draw animated engine flames
             const flameSprite = assetManager.getSprite(`engineFlame${this.engineFrame + 1}`);

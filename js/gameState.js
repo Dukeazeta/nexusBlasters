@@ -76,10 +76,13 @@ class GameState {
         this.updateBullets(deltaTime, canvasWidth, canvasHeight);
         this.updatePowerUps(deltaTime, canvasHeight);
         this.updateParticles(deltaTime);
-        
+
+        // Update visual effects
+        effectsManager.update(deltaTime);
+
         // Check collisions
         this.checkCollisions();
-        
+
         // Update wave progression
         this.updateWaveProgression(deltaTime);
     }
@@ -109,7 +112,10 @@ class GameState {
         const x = Utils.randomFloat(50, canvasWidth - 50);
         const y = -50;
         const type = Math.random() < 0.7 ? 'scout' : 'fighter';
-        
+
+        // Add spawn effect
+        effectsManager.enemySpawned(x, y);
+
         this.enemies.push(new Enemy(x, y, type));
     }
     
@@ -211,7 +217,13 @@ class GameState {
             const enemyBounds = enemy.getBounds();
 
             if (Utils.rectCollision(playerBounds, enemyBounds)) {
-                this.player.takeDamage(1); // Take 1 heart of damage
+                const damageTaken = this.player.takeDamage(1); // Take 1 heart of damage
+                if (damageTaken) {
+                    audioManager.playSound('playerHit');
+                    effectsManager.playerHit(this.player.x, this.player.y);
+                }
+                audioManager.playSound('enemyDestroy');
+                effectsManager.enemyDestroyed(enemy.x, enemy.y, enemy.type);
                 this.createExplosion(enemy.x, enemy.y);
                 this.enemies.splice(i, 1);
                 break;
@@ -226,7 +238,11 @@ class GameState {
             const bulletBounds = bullet.getBounds();
 
             if (Utils.rectCollision(playerBounds, bulletBounds)) {
-                this.player.takeDamage(1); // Take 1 heart of damage
+                const damageTaken = this.player.takeDamage(1); // Take 1 heart of damage
+                if (damageTaken) {
+                    audioManager.playSound('playerHit');
+                    effectsManager.playerHit(this.player.x, this.player.y);
+                }
                 this.createExplosion(bullet.x, bullet.y);
                 this.bullets.splice(i, 1);
                 break;
@@ -248,6 +264,9 @@ class GameState {
                     if (enemy.takeDamage(bullet.damage)) {
                         this.score += enemy.points;
                         this.kills++;
+                        audioManager.playSound('enemyDestroy');
+                        effectsManager.enemyDestroyed(enemy.x, enemy.y, enemy.type);
+                        effectsManager.scoreGained(enemy.x, enemy.y, enemy.points);
                         this.createExplosion(enemy.x, enemy.y);
                         this.enemies.splice(j, 1);
                     }
@@ -263,6 +282,7 @@ class GameState {
             const powerUpBounds = powerUp.getBounds();
             
             if (Utils.rectCollision(playerBounds, powerUpBounds)) {
+                effectsManager.powerUpCollected(powerUp.x, powerUp.y, powerUp.type);
                 powerUp.applyEffect(this.player);
                 this.powerUps.splice(i, 1);
             }
@@ -274,6 +294,8 @@ class GameState {
 
         // New wave every 30 seconds
         if (this.waveTimer >= 30000) {
+            audioManager.playSound('waveComplete');
+            effectsManager.waveCompleted();
             this.wave++;
             this.waveTimer = 0;
 

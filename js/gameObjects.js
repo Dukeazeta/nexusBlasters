@@ -224,6 +224,13 @@ class Enemy extends GameObject {
         this.isFiring = true;
         this.muzzleFlashTimer = 0;
 
+        // Play enemy weapon sound
+        if (this.type === 'fighter') {
+            audioManager.playSound('enemyHeavyShoot');
+        } else {
+            audioManager.playSound('enemyShoot');
+        }
+
         // Shoot straight downward only (no homing/tracking)
         const bulletSpeed = GAME_CONFIG.BULLET.ENEMY_SPEED;
         const velocityX = 0; // No horizontal movement
@@ -325,15 +332,19 @@ class PowerUp extends GameObject {
         switch (this.type) {
             case 'health':
                 player.heal(1); // Restore exactly one heart
+                audioManager.playSound('healthPickup');
                 break;
             case 'speed':
                 player.applySpeedBoost(); // 10 seconds with visual effects
+                audioManager.playSound('speedPickup');
                 break;
             case 'rapidFire':
                 player.applyRapidFire(); // Permanent until damage
+                audioManager.playSound('rapidFirePickup');
                 break;
             case 'shield':
                 player.applyShield(); // 10 seconds of invincibility
+                audioManager.playSound('shieldPickup');
                 break;
         }
     }

@@ -63,32 +63,44 @@ class NexusBlasters {
     setupUI() {
         // Start button
         document.getElementById('startButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
             this.startGame();
         });
-        
+
         // Restart button
         document.getElementById('restartButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
             this.restartGame();
         });
-        
+
         // Resume button
         document.getElementById('resumeButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
             this.resumeGame();
         });
-        
+
         // Main menu button
         document.getElementById('mainMenuButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
             this.showMainMenu();
         });
-        
+
         // Share button
         document.getElementById('shareButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
             this.shareScore();
         });
-        
+
         // Pause button
         document.getElementById('pauseBtn').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
             this.pauseGame();
+        });
+
+        // Audio toggle button
+        document.getElementById('audioBtn').addEventListener('click', () => {
+            audioManager.toggleAudio();
+            this.updateAudioButton();
         });
     }
     
@@ -119,6 +131,7 @@ class NexusBlasters {
     }
     
     startGame() {
+        audioManager.playSound('gameStart');
         this.gameState.startGame(this.canvas.width, this.canvas.height);
 
         // Hide menu
@@ -312,28 +325,46 @@ class NexusBlasters {
     }
     
     render() {
+        // Apply screen shake
+        effectsManager.applyScreenShake(this.ctx);
+
         // Clear canvas
         this.ctx.fillStyle = GAME_CONFIG.COLORS.SPACE_DARK;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
+
         // Render background
         backgroundRenderer.render(this.ctx, this.canvas.width, this.canvas.height);
-        
+
         // Render game objects
         if (this.gameState.state === 'playing' || this.gameState.state === 'paused') {
             this.gameState.render(this.ctx);
         }
+
+        // Render visual effects
+        effectsManager.render(this.ctx);
+
+        // Restore screen shake
+        effectsManager.restoreScreenShake(this.ctx);
     }
     
     handleGameOver() {
+        audioManager.playSound('gameOver');
+
         // Show game over screen
         document.getElementById('finalScore').textContent = this.gameState.score;
         document.getElementById('finalWave').textContent = this.gameState.wave;
         document.getElementById('finalKills').textContent = this.gameState.kills;
         document.getElementById('gameOverScreen').classList.remove('hidden');
-        
+
         // Reset game state to prevent multiple triggers
         this.gameState.state = 'gameOverShown';
+    }
+
+    updateAudioButton() {
+        const audioBtn = document.getElementById('audioBtn');
+        if (audioBtn) {
+            audioBtn.textContent = audioManager.enabled ? '🔊' : '🔇';
+        }
     }
 }
 
