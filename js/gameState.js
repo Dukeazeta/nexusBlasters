@@ -25,6 +25,25 @@ class GameState {
         this.bossWarningTimer = 0;
         this.bossWarningDuration = 3000; // 3 second warning
         this.showingBossWarning = false;
+
+        // Combo system
+        this.combo = 0;
+        this.maxCombo = 0;
+        this.comboTimer = 0;
+        this.comboTimeout = 3000; // 3 seconds to maintain combo
+        this.comboMultiplier = 1.0;
+
+        // Achievement system
+        this.achievements = {
+            firstKill: false,
+            combo10: false,
+            combo25: false,
+            combo50: false,
+            bossKiller: false,
+            survivor: false,
+            powerCollector: false
+        };
+        this.achievementQueue = [];
         
         // Make this globally accessible for other classes
         window.gameState = this;
@@ -96,11 +115,144 @@ class GameState {
         // Update visual effects
         effectsManager.update(deltaTime);
 
+        // Update combo system
+        this.updateComboSystem(deltaTime);
+
+        // Update achievements
+        this.updateAchievements(deltaTime);
+
         // Check collisions
         this.checkCollisions();
 
         // Update wave progression
         this.updateWaveProgression(deltaTime);
+    }
+
+    // ===== COMBO SYSTEM =====
+
+    updateComboSystem(deltaTime) {
+        if (this.combo > 0) {
+            this.comboTimer += deltaTime;
+
+            if (this.comboTimer >= this.comboTimeout) {
+                this.resetCombo();
+            }
+        }
+
+        // Update combo multiplier
+        this.comboMultiplier = 1.0 + (this.combo * 0.1); // 10% bonus per combo
+    }
+
+    addCombo() {
+        this.combo++;
+        this.comboTimer = 0;
+
+        if (this.combo > this.maxCombo) {
+            this.maxCombo = this.combo;
+        }
+
+        // Show combo effect
+        if (this.combo >= 5) {
+            effectsManager.addFloatingText(
+                this.player.x,
+                this.player.y - 40,
+                `${this.combo}x COMBO!`,
+                GAME_CONFIG.COLORS.PROOF_GOLD,
+                16
+            );
+        }
+
+        // Check combo achievements
+        this.checkComboAchievements();
+    }
+
+    resetCombo() {
+        if (this.combo >= 10) {
+            effectsManager.addFloatingText(
+                400,
+                300,
+                'COMBO BROKEN!',
+                GAME_CONFIG.COLORS.THREAT_RED,
+                20
+            );
+        }
+
+        this.combo = 0;
+        this.comboTimer = 0;
+        this.comboMultiplier = 1.0;
+    }
+
+    playerTookDamage() {
+        this.resetCombo();
+    }
+
+    // ===== ACHIEVEMENT SYSTEM =====
+
+    updateAchievements(deltaTime) {
+        // Process achievement queue
+        if (this.achievementQueue.length > 0) {
+            const achievement = this.achievementQueue.shift();
+            this.showAchievement(achievement);
+        }
+    }
+
+    checkComboAchievements() {
+        if (this.combo === 10 && !this.achievements.combo10) {
+            this.unlockAchievement('combo10', 'COMBO MASTER', 'Achieve 10x combo');
+        }
+        if (this.combo === 25 && !this.achievements.combo25) {
+            this.unlockAchievement('combo25', 'COMBO EXPERT', 'Achieve 25x combo');
+        }
+        if (this.combo === 50 && !this.achievements.combo50) {
+            this.unlockAchievement('combo50', 'COMBO LEGEND', 'Achieve 50x combo');
+        }
+    }
+
+    unlockAchievement(id, title, description) {
+        if (!this.achievements[id]) {
+            this.achievements[id] = true;
+            this.achievementQueue.push({ id, title, description });
+            console.log(`Achievement unlocked: ${title}`);
+        }
+    }
+
+    showAchievement(achievement) {
+        // Show achievement notification
+        effectsManager.addFloatingText(
+            400,
+            200,
+            `🏆 ${achievement.title}`,
+            GAME_CONFIG.COLORS.PROOF_GOLD,
+            24
+        );
+
+        effectsManager.addFloatingText(
+            400,
+            230,
+            achievement.description,
+            GAME_CONFIG.COLORS.NEXUS_GLOW,
+            14
+        );
+
+        // Achievement particles
+        for (let i = 0; i < 20; i++) {
+            const angle = (Math.PI * 2 * i) / 20;
+            const speed = 100;
+            effectsManager.particles.push({
+                x: 400,
+                y: 215,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 3,
+                maxSize: 3,
+                life: 1.5,
+                maxLife: 1.5,
+                color: GAME_CONFIG.COLORS.PROOF_GOLD,
+                type: 'celebration',
+                gravity: -20,
+                friction: 0.95
+            });
+        }
     }
     
     updateEnemySpawning(deltaTime, canvasWidth) {
@@ -235,6 +387,7 @@ class GameState {
             if (Utils.rectCollision(playerBounds, enemyBounds)) {
                 const damageTaken = this.player.takeDamage(1); // Take 1 heart of damage
                 if (damageTaken) {
+                    this.playerTookDamage(); // Reset combo
                     audioManager.playSound('playerHit');
                     effectsManager.playerHit(this.player.x, this.player.y);
                 }
@@ -256,6 +409,7 @@ class GameState {
             if (Utils.rectCollision(playerBounds, bulletBounds)) {
                 const damageTaken = this.player.takeDamage(1); // Take 1 heart of damage
                 if (damageTaken) {
+                    this.playerTookDamage(); // Reset combo
                     audioManager.playSound('playerHit');
                     effectsManager.playerHit(this.player.x, this.player.y);
                 }
@@ -277,12 +431,36 @@ class GameState {
                 const enemyBounds = enemy.getBounds();
                 
                 if (Utils.rectCollision(bulletBounds, enemyBounds)) {
-                    if (enemy.takeDamage(bullet.damage)) {
-                        this.score += enemy.points;
+                    // Reduce damage against bosses for balanced encounters
+                    let actualDamage = bullet.damage;
+                    if (enemy.isBoss && enemy.isBoss()) {
+                        actualDamage = Math.floor(bullet.damage * 0.4); // 60% damage reduction against bosses
+                    }
+
+                    if (enemy.takeDamage(actualDamage)) {
+                        // Award points with combo multiplier
+                        const basePoints = enemy.points;
+                        const bonusPoints = Math.floor(basePoints * (this.comboMultiplier - 1));
+                        const totalPoints = basePoints + bonusPoints;
+                        this.score += totalPoints;
                         this.kills++;
+
+                        // Add combo
+                        this.addCombo();
+
+                        // Check achievements
+                        if (!this.achievements.firstKill) {
+                            this.unlockAchievement('firstKill', 'FIRST BLOOD', 'Destroy your first enemy');
+                        }
+                        if (enemy.isBoss && enemy.isBoss()) {
+                            this.unlockAchievement('bossKiller', 'BOSS SLAYER', 'Defeat a boss enemy');
+                            // Handle boss defeat immediately to prevent crashes
+                            this.handleBossDefeated();
+                        }
+
                         audioManager.playSound('enemyDestroy');
                         effectsManager.enemyDestroyed(enemy.x, enemy.y, enemy.type);
-                        effectsManager.scoreGained(enemy.x, enemy.y, enemy.points);
+                        effectsManager.scoreGained(enemy.x, enemy.y, totalPoints);
                         this.createExplosion(enemy.x, enemy.y);
                         this.enemies.splice(j, 1);
                     }
@@ -322,17 +500,22 @@ class GameState {
             }
         }
 
-        // Update current boss
+        // Update current boss (check if boss still exists in enemies array)
         if (this.currentBoss) {
-            if (!this.currentBoss.active) {
-                this.handleBossDefeated();
+            // Check if boss is still in the enemies array
+            const bossStillExists = this.enemies.includes(this.currentBoss);
+            if (!bossStillExists || !this.currentBoss.active) {
+                // Only handle defeat if not already handled
+                if (bossStillExists) {
+                    this.handleBossDefeated();
+                }
             }
         }
     }
 
     shouldSpawnBoss() {
-        // Boss waves: 3, 5, 10, 15, 20, 25, etc. (3 for testing, then every 5)
-        return (this.wave === 3) || (this.wave % 5 === 0 && this.wave >= 5);
+        // Boss waves: every 5 waves consistently (5, 10, 15, 20, 25, etc.)
+        return this.wave % 5 === 0 && this.wave >= 5;
     }
 
     startBossWarning() {
@@ -363,31 +546,47 @@ class GameState {
         const x = canvasWidth / 2;
         const y = -100; // Start above screen
 
-        this.currentBoss = new Boss(x, y, bossType);
+        // Pass wave number for difficulty scaling
+        this.currentBoss = new Boss(x, y, bossType, this.wave);
         this.enemies.push(this.currentBoss);
 
         // Stop regular enemy spawning during boss fight
         this.enemySpawnTimer = 0;
 
-        console.log(`Boss spawned: ${bossType} for wave ${this.wave}`);
+        console.log(`Boss spawned: ${bossType} for wave ${this.wave} with ${this.currentBoss.health} HP`);
     }
 
     handleBossDefeated() {
         if (this.currentBoss) {
-            // Award massive points
-            this.score += 10000;
+            // Award massive points based on boss type
+            const bossPoints = {
+                protocolTitan: 10000,
+                consensusDestroyer: 15000,
+                networkOverlord: 25000
+            };
+            const points = bossPoints[this.currentBoss.bossType] || 10000;
+            this.score += points;
+
+            console.log(`Boss defeated: ${this.currentBoss.bossType}! Awarded ${points} points.`);
 
             // Clear boss reference
             this.currentBoss = null;
 
-            // Advance to next wave immediately
+            // Advance to next wave immediately and reset timer
             this.wave++;
             this.waveTimer = 0;
+
+            // Resume normal enemy spawning
+            this.enemySpawnTimer = 0;
 
             // Update enemy fire rates for new wave
             this.updateEnemyFireRates();
 
-            console.log(`Boss defeated! Advanced to wave ${this.wave}`);
+            // Show wave completion effect
+            effectsManager.waveCompleted();
+            audioManager.playSound('waveComplete');
+
+            console.log(`Advanced to wave ${this.wave} - Normal gameplay resumed`);
         }
     }
 

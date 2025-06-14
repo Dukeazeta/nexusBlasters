@@ -13,16 +13,29 @@ class EffectsManager {
         
         // Particle systems
         this.particles = [];
-        this.maxParticles = 500;
-        
+        this.maxParticles = 800; // Increased for more effects
+
+        // Advanced particle systems
+        this.trailParticles = [];
+        this.glowParticles = [];
+        this.maxTrailParticles = 200;
+        this.maxGlowParticles = 100;
+
         // Flash effects
         this.flashEffects = [];
-        
+
         // Floating text effects
         this.floatingTexts = [];
-        
-        // Glow effects
-        this.glowEffects = [];
+
+        // Screen effects
+        this.screenEffects = [];
+
+        // Background effects
+        this.backgroundEffects = {
+            stars: [],
+            debris: [],
+            energy: []
+        };
         
         console.log('Effects Manager initialized');
     }
@@ -362,6 +375,16 @@ class EffectsManager {
                     ctx.lineTo(particle.x, particle.y + victorySize);
                     ctx.stroke();
                     break;
+
+                case 'muzzleFlash':
+                    ctx.fillStyle = particle.color;
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = particle.size * 3;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    break;
             }
             
             ctx.restore();
@@ -416,16 +439,136 @@ class EffectsManager {
         }
     }
     
+    // ===== TRAIL PARTICLE SYSTEM =====
+
+    createTrailParticle(x, y, color = '#4a90e2', size = 2, life = 0.5) {
+        if (this.trailParticles.length >= this.maxTrailParticles) {
+            this.trailParticles.shift(); // Remove oldest
+        }
+
+        this.trailParticles.push({
+            x: x + (Math.random() - 0.5) * 4,
+            y: y + (Math.random() - 0.5) * 4,
+            size: size,
+            maxSize: size,
+            life: life,
+            maxLife: life,
+            color: color,
+            alpha: 1.0,
+            vx: (Math.random() - 0.5) * 20,
+            vy: (Math.random() - 0.5) * 20
+        });
+    }
+
+    updateTrailParticles(deltaTime) {
+        const dt = deltaTime / 1000;
+
+        for (let i = this.trailParticles.length - 1; i >= 0; i--) {
+            const particle = this.trailParticles[i];
+
+            // Update position
+            particle.x += particle.vx * dt;
+            particle.y += particle.vy * dt;
+
+            // Update life and alpha
+            particle.life -= dt;
+            particle.alpha = particle.life / particle.maxLife;
+            particle.size = particle.maxSize * particle.alpha;
+
+            // Remove dead particles
+            if (particle.life <= 0) {
+                this.trailParticles.splice(i, 1);
+            }
+        }
+    }
+
+    renderTrailParticles(ctx) {
+        for (const particle of this.trailParticles) {
+            ctx.save();
+            ctx.globalAlpha = particle.alpha * 0.8;
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    // ===== GLOW PARTICLE SYSTEM =====
+
+    createGlowParticle(x, y, color = '#4a90e2', intensity = 1.0, life = 1.0) {
+        if (this.glowParticles.length >= this.maxGlowParticles) {
+            this.glowParticles.shift(); // Remove oldest
+        }
+
+        this.glowParticles.push({
+            x: x,
+            y: y,
+            intensity: intensity,
+            maxIntensity: intensity,
+            life: life,
+            maxLife: life,
+            color: color,
+            radius: 10 * intensity,
+            maxRadius: 10 * intensity
+        });
+    }
+
+    updateGlowParticles(deltaTime) {
+        const dt = deltaTime / 1000;
+
+        for (let i = this.glowParticles.length - 1; i >= 0; i--) {
+            const particle = this.glowParticles[i];
+
+            // Update life and intensity
+            particle.life -= dt;
+            const lifeRatio = particle.life / particle.maxLife;
+            particle.intensity = particle.maxIntensity * lifeRatio;
+            particle.radius = particle.maxRadius * (0.5 + lifeRatio * 0.5);
+
+            // Remove dead particles
+            if (particle.life <= 0) {
+                this.glowParticles.splice(i, 1);
+            }
+        }
+    }
+
+    renderGlowParticles(ctx) {
+        for (const particle of this.glowParticles) {
+            ctx.save();
+            ctx.globalAlpha = particle.intensity * 0.3;
+
+            // Create radial gradient for glow effect
+            const gradient = ctx.createRadialGradient(
+                particle.x, particle.y, 0,
+                particle.x, particle.y, particle.radius
+            );
+            gradient.addColorStop(0, particle.color);
+            gradient.addColorStop(1, 'transparent');
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
     // ===== MAIN UPDATE AND RENDER =====
-    
+
     update(deltaTime) {
         this.updateScreenShake(deltaTime);
         this.updateParticles(deltaTime);
+        this.updateTrailParticles(deltaTime);
+        this.updateGlowParticles(deltaTime);
         this.updateFloatingTexts(deltaTime);
     }
     
     render(ctx) {
+        // Render in order: glows first (background), then particles, then trails, then text (foreground)
+        this.renderGlowParticles(ctx);
         this.renderParticles(ctx);
+        this.renderTrailParticles(ctx);
         this.renderFloatingTexts(ctx);
     }
     
@@ -460,6 +603,90 @@ class EffectsManager {
     
     scoreGained(x, y, points) {
         this.addFloatingText(x, y - 30, `+${points}`, GAME_CONFIG.COLORS.PROOF_GOLD, 12);
+    }
+
+    // ===== ENHANCED VISUAL EFFECTS =====
+
+    bulletTrail(x, y, bulletType = 'player') {
+        const colors = {
+            player: GAME_CONFIG.COLORS.NEXUS_GLOW,
+            enemy: GAME_CONFIG.COLORS.THREAT_RED,
+            boss: '#ff8844',
+            laser: '#ffff44'
+        };
+
+        this.createTrailParticle(x, y, colors[bulletType] || colors.player, 1.5, 0.3);
+
+        // Add glow for special bullets
+        if (bulletType === 'boss' || bulletType === 'laser') {
+            this.createGlowParticle(x, y, colors[bulletType], 0.8, 0.2);
+        }
+    }
+
+    playerEngineTrail(x, y, speedBoost = false) {
+        const color = speedBoost ? GAME_CONFIG.COLORS.PROOF_GOLD : GAME_CONFIG.COLORS.NEXUS_GLOW;
+        const intensity = speedBoost ? 1.5 : 1.0;
+
+        // Create multiple trail particles for engine effect
+        for (let i = 0; i < 3; i++) {
+            this.createTrailParticle(
+                x + (Math.random() - 0.5) * 8,
+                y + 10 + i * 3,
+                color,
+                2 + Math.random(),
+                0.4 + Math.random() * 0.2
+            );
+        }
+
+        // Add glow for speed boost
+        if (speedBoost) {
+            this.createGlowParticle(x, y + 15, color, 1.2, 0.3);
+        }
+    }
+
+    enemyEngineTrail(x, y, enemyType = 'scout') {
+        const color = enemyType === 'boss' ? '#ff8844' : GAME_CONFIG.COLORS.THREAT_RED;
+        const intensity = enemyType === 'boss' ? 2.0 : 1.0;
+
+        this.createTrailParticle(x, y + 10, color, 1.5 * intensity, 0.3);
+
+        if (enemyType === 'boss') {
+            this.createGlowParticle(x, y + 15, color, 1.0, 0.2);
+        }
+    }
+
+    muzzleFlash(x, y, bulletType = 'player') {
+        const colors = {
+            player: '#ffffff',
+            enemy: GAME_CONFIG.COLORS.THREAT_RED,
+            boss: '#ff8844',
+            laser: '#ffff44'
+        };
+
+        // Create bright flash particles
+        for (let i = 0; i < 5; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Utils.randomFloat(50, 100);
+            const size = Utils.randomFloat(1, 3);
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: size,
+                maxSize: size,
+                life: 0.1,
+                maxLife: 0.1,
+                color: colors[bulletType] || colors.player,
+                type: 'muzzleFlash',
+                gravity: 0,
+                friction: 0.9
+            });
+        }
+
+        // Add glow effect
+        this.createGlowParticle(x, y, colors[bulletType] || colors.player, 1.5, 0.15);
     }
 
     enemySpawned(x, y) {

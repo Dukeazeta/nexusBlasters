@@ -364,6 +364,7 @@ class NexusBlasters {
     updateBossUI() {
         const bossWarning = document.getElementById('bossWarning');
         const bossHealthBar = document.getElementById('bossHealthBar');
+        const gameContainer = document.getElementById('gameContainer');
 
         // Handle boss warning display
         if (this.gameState.showingBossWarning) {
@@ -383,7 +384,7 @@ class NexusBlasters {
             bossWarning.classList.add('hidden');
         }
 
-        // Handle boss health bar display
+        // Handle boss health bar display and UI layout changes
         if (this.gameState.currentBoss && this.gameState.currentBoss.hasEntered) {
             const boss = this.gameState.currentBoss;
             const healthPercent = (boss.health / boss.maxHealth) * 100;
@@ -398,8 +399,14 @@ class NexusBlasters {
             bossHealthBar.querySelector('.boss-health-fill').style.width = `${healthPercent}%`;
             bossHealthBar.querySelector('.boss-phase-indicator').textContent = `PHASE ${boss.phase}`;
             bossHealthBar.classList.remove('hidden');
+
+            // Enable boss fight UI mode - hide most UI elements, move health to bottom
+            gameContainer.classList.add('boss-fight-mode');
         } else {
             bossHealthBar.classList.add('hidden');
+
+            // Restore normal UI layout when no boss is active
+            gameContainer.classList.remove('boss-fight-mode');
         }
     }
 

@@ -4,8 +4,85 @@ class BackgroundRenderer {
         this.backgroundCanvas = null;
         this.offset = 0;
         this.speed = GAME_CONFIG.BACKGROUND.SCROLL_SPEED;
+
+        // Animated elements
+        this.animatedStars = [];
+        this.floatingDebris = [];
+        this.energyStreams = [];
+        this.pulsingNodes = [];
+
+        this.initAnimatedElements();
     }
-    
+
+    initAnimatedElements() {
+        // Create animated twinkling stars
+        for (let i = 0; i < 50; i++) {
+            this.animatedStars.push({
+                x: Math.random() * 800,
+                y: Math.random() * 600,
+                size: Math.random() * 2 + 1,
+                twinkleSpeed: Math.random() * 0.02 + 0.01,
+                brightness: Math.random(),
+                color: Math.random() > 0.8 ? GAME_CONFIG.COLORS.NEXUS_GLOW : '#ffffff'
+            });
+        }
+
+        // Create floating debris
+        for (let i = 0; i < 15; i++) {
+            this.floatingDebris.push({
+                x: Math.random() * 800,
+                y: Math.random() * 600,
+                size: Math.random() * 4 + 2,
+                speed: Math.random() * 20 + 10,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.02,
+                color: '#666666'
+            });
+        }
+
+        // Create energy streams
+        for (let i = 0; i < 8; i++) {
+            this.energyStreams.push({
+                x: Math.random() * 800,
+                y: Math.random() * 600,
+                length: Math.random() * 100 + 50,
+                speed: Math.random() * 30 + 20,
+                thickness: Math.random() * 2 + 1,
+                color: GAME_CONFIG.COLORS.NEXUS_ACCENT,
+                alpha: Math.random() * 0.5 + 0.3,
+                direction: Math.random() * Math.PI * 2
+            });
+        }
+
+        // Create pulsing nexus nodes
+        for (let i = 0; i < 6; i++) {
+            this.pulsingNodes.push({
+                x: Math.random() * 800,
+                y: Math.random() * 600,
+                size: Math.random() * 8 + 4,
+                pulseSpeed: Math.random() * 0.03 + 0.01,
+                pulsePhase: Math.random() * Math.PI * 2,
+                color: GAME_CONFIG.COLORS.NEXUS_GLOW,
+                connections: []
+            });
+        }
+
+        // Create connections between nearby nodes
+        for (let i = 0; i < this.pulsingNodes.length; i++) {
+            for (let j = i + 1; j < this.pulsingNodes.length; j++) {
+                const node1 = this.pulsingNodes[i];
+                const node2 = this.pulsingNodes[j];
+                const distance = Math.sqrt(
+                    Math.pow(node1.x - node2.x, 2) + Math.pow(node1.y - node2.y, 2)
+                );
+
+                if (distance < 200) {
+                    node1.connections.push(j);
+                }
+            }
+        }
+    }
+
     // Create space elements (planets, nebulae, etc.)
     createSpaceElements() {
         this.createPlanets();
@@ -317,16 +394,143 @@ class BackgroundRenderer {
     // Update background animation
     update(deltaTime) {
         this.offset += this.speed * (deltaTime / 1000);
+        this.updateAnimatedElements(deltaTime);
+    }
+
+    updateAnimatedElements(deltaTime) {
+        const dt = deltaTime / 1000;
+
+        // Update twinkling stars
+        for (const star of this.animatedStars) {
+            star.brightness += star.twinkleSpeed;
+            if (star.brightness > 1) star.brightness = 0;
+        }
+
+        // Update floating debris
+        for (const debris of this.floatingDebris) {
+            debris.y += debris.speed * dt;
+            debris.rotation += debris.rotationSpeed;
+
+            // Wrap around screen
+            if (debris.y > 650) {
+                debris.y = -50;
+                debris.x = Math.random() * 800;
+            }
+        }
+
+        // Update energy streams
+        for (const stream of this.energyStreams) {
+            stream.x += Math.cos(stream.direction) * stream.speed * dt;
+            stream.y += Math.sin(stream.direction) * stream.speed * dt;
+
+            // Wrap around screen
+            if (stream.x < -100) stream.x = 900;
+            if (stream.x > 900) stream.x = -100;
+            if (stream.y < -100) stream.y = 700;
+            if (stream.y > 700) stream.y = -100;
+        }
+
+        // Update pulsing nodes
+        for (const node of this.pulsingNodes) {
+            node.pulsePhase += node.pulseSpeed;
+        }
     }
     
     // Render animated background
     render(ctx, canvasWidth, canvasHeight) {
         if (!this.backgroundCanvas) return;
-        
+
         // Create scrolling effect by drawing background twice (scrolling downward)
         const yOffset = this.offset % canvasHeight;
         ctx.drawImage(this.backgroundCanvas, 0, yOffset);
         ctx.drawImage(this.backgroundCanvas, 0, yOffset - canvasHeight);
+
+        // Render animated elements on top
+        this.renderAnimatedElements(ctx, canvasWidth, canvasHeight);
+    }
+
+    renderAnimatedElements(ctx, canvasWidth, canvasHeight) {
+        ctx.save();
+
+        // Render energy streams
+        for (const stream of this.energyStreams) {
+            ctx.globalAlpha = stream.alpha;
+            ctx.strokeStyle = stream.color;
+            ctx.lineWidth = stream.thickness;
+            ctx.beginPath();
+            ctx.moveTo(stream.x, stream.y);
+            ctx.lineTo(
+                stream.x + Math.cos(stream.direction) * stream.length,
+                stream.y + Math.sin(stream.direction) * stream.length
+            );
+            ctx.stroke();
+        }
+
+        // Render pulsing nodes and connections
+        for (let i = 0; i < this.pulsingNodes.length; i++) {
+            const node = this.pulsingNodes[i];
+
+            // Render connections
+            ctx.globalAlpha = 0.3;
+            ctx.strokeStyle = node.color;
+            ctx.lineWidth = 1;
+            for (const connectionIndex of node.connections) {
+                const connectedNode = this.pulsingNodes[connectionIndex];
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(connectedNode.x, connectedNode.y);
+                ctx.stroke();
+            }
+
+            // Render node
+            const pulseIntensity = 0.5 + 0.5 * Math.sin(node.pulsePhase);
+            ctx.globalAlpha = pulseIntensity * 0.8;
+            ctx.fillStyle = node.color;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.size * pulseIntensity, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Add glow effect
+            ctx.globalAlpha = pulseIntensity * 0.3;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.size * pulseIntensity * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Render floating debris
+        for (const debris of this.floatingDebris) {
+            ctx.globalAlpha = 0.6;
+            ctx.fillStyle = debris.color;
+            ctx.save();
+            ctx.translate(debris.x, debris.y);
+            ctx.rotate(debris.rotation);
+            ctx.fillRect(-debris.size / 2, -debris.size / 2, debris.size, debris.size);
+            ctx.restore();
+        }
+
+        // Render animated twinkling stars
+        for (const star of this.animatedStars) {
+            ctx.globalAlpha = star.brightness;
+            ctx.fillStyle = star.color;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Add twinkle effect
+            if (star.brightness > 0.8) {
+                ctx.globalAlpha = (star.brightness - 0.8) * 5;
+                ctx.strokeStyle = star.color;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(star.x - star.size * 2, star.y);
+                ctx.lineTo(star.x + star.size * 2, star.y);
+                ctx.moveTo(star.x, star.y - star.size * 2);
+                ctx.lineTo(star.x, star.y + star.size * 2);
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
     }
     
     // Recreate background when canvas resizes

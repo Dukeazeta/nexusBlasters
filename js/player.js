@@ -12,9 +12,9 @@ class Player {
         this.engineTimer = 0;
         this.engineAnimSpeed = GAME_CONFIG.PLAYER.ENGINE_ANIM_SPEED;
         
-        // Combat properties (heart system)
-        this.hearts = 6;
-        this.maxHearts = 6;
+        // Combat properties (heart system) - Increased to 10 hearts maximum
+        this.hearts = 6; // Start with 6 hearts
+        this.maxHearts = 10; // Can accumulate up to 10 hearts
         this.shootTimer = 0;
         this.shootCooldown = 200; // milliseconds
 
@@ -33,6 +33,23 @@ class Player {
         this.shield = false;
         this.shieldTimer = 0;
         this.shieldDuration = 10000; // 10 seconds
+
+        // New power-ups
+        this.multiShot = false;
+        this.multiShotTimer = 0;
+        this.multiShotDuration = 10000; // 10 seconds
+
+        this.homingMissiles = false;
+        this.homingMissilesTimer = 0;
+        this.homingMissilesDuration = 10000; // 10 seconds
+
+        this.invincibility = false;
+        this.invincibilityTimer = 0;
+        this.invincibilityDuration = 5000; // 5 seconds
+
+        this.superWeapon = false;
+        this.superWeaponTimer = 0;
+        this.superWeaponDuration = 15000; // 15 seconds
     }
     
     update(deltaTime, inputManager, canvasWidth, canvasHeight) {
@@ -41,6 +58,7 @@ class Player {
         this.updatePowerUps(deltaTime);
         this.updateShooting(deltaTime, inputManager);
         this.updateFiringAnimation(deltaTime);
+        this.updateVisualEffects(deltaTime);
     }
     
     updateMovement(deltaTime, inputManager, canvasWidth, canvasHeight) {
@@ -168,13 +186,32 @@ class Player {
                 // Rapid fire mode - smaller bullets, higher rate
                 window.gameState.createPlayerBullet(leftWeaponX, weaponY, 'rapid');
                 window.gameState.createPlayerBullet(rightWeaponX, weaponY, 'rapid');
+
+                // Enhanced muzzle flash effects for dual weapons
+                effectsManager.muzzleFlash(leftWeaponX, weaponY, 'player');
+                effectsManager.muzzleFlash(rightWeaponX, weaponY, 'player');
             } else {
                 // Normal fire mode - larger bullets
                 window.gameState.createPlayerBullet(this.x, weaponY, 'normal');
+
+                // Enhanced muzzle flash effect
+                effectsManager.muzzleFlash(this.x, weaponY, 'player');
             }
         }
     }
-    
+
+    updateVisualEffects(deltaTime) {
+        // Create engine trail particles
+        if (Math.random() < 0.7) { // 70% chance each frame
+            effectsManager.playerEngineTrail(this.x, this.y, this.speedBoost > 1.0);
+        }
+
+        // Add shield glow effect
+        if (this.shield && Math.random() < 0.3) {
+            effectsManager.createGlowParticle(this.x, this.y, GAME_CONFIG.COLORS.NEXUS_ACCENT, 1.0, 0.5);
+        }
+    }
+
     takeDamage(amount = 1) {
         if (this.shield) {
             return false; // No damage taken due to shield

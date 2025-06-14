@@ -70,6 +70,7 @@ class Bullet extends GameObject {
         // Update visual effects
         this.updateTrailEffect(deltaTime);
         this.updateGlowEffect(deltaTime);
+        this.updateEnhancedEffects(deltaTime);
     }
 
     updateTrailEffect(deltaTime) {
@@ -98,6 +99,21 @@ class Bullet extends GameObject {
     updateGlowEffect(deltaTime) {
         // Pulsing glow effect
         this.glowIntensity = 0.8 + 0.2 * Math.sin(Date.now() * 0.01);
+    }
+
+    updateEnhancedEffects(deltaTime) {
+        // Create enhanced trail effects using the new effects manager
+        if (Math.random() < 0.8) { // 80% chance each frame
+            effectsManager.bulletTrail(this.x, this.y, this.type === 'player' ? 'player' : 'enemy');
+        }
+
+        // Special effects for boss bullets
+        if (this.subType === 'boss' || this.subType === 'laser') {
+            if (Math.random() < 0.4) {
+                effectsManager.createGlowParticle(this.x, this.y,
+                    this.subType === 'laser' ? '#ffff44' : '#ff8844', 0.6, 0.2);
+            }
+        }
     }
     
     render(ctx) {
@@ -176,6 +192,7 @@ class Enemy extends GameObject {
         this.updateMovement(deltaTime);
         this.updateShooting(deltaTime, playerX, playerY);
         this.updateFiringAnimation(deltaTime);
+        this.updateEnemyEffects(deltaTime);
     }
     
     updateMovement(deltaTime) {
@@ -240,6 +257,16 @@ class Enemy extends GameObject {
         if (window.gameState) {
             const bulletType = this.type === 'fighter' ? 'heavy' : 'normal';
             window.gameState.createEnemyBullet(this.x, this.y + this.height / 2, velocityX, velocityY, bulletType);
+
+            // Add enhanced muzzle flash effect
+            effectsManager.muzzleFlash(this.x, this.y + this.height / 2, 'enemy');
+        }
+    }
+
+    updateEnemyEffects(deltaTime) {
+        // Create engine trail particles for enemies
+        if (Math.random() < 0.5) { // 50% chance each frame
+            effectsManager.enemyEngineTrail(this.x, this.y, this.type);
         }
     }
     
@@ -307,19 +334,27 @@ class Enemy extends GameObject {
             ctx.globalAlpha = 1.0;
         }
     }
+
+    isBoss() {
+        return false; // Regular enemies are not bosses
+    }
 }
 
 // Boss class - Epic boss encounters
 class Boss extends Enemy {
-    constructor(x, y, type = 'protocolTitan') {
-        // Boss sizes are much larger than regular enemies
+    constructor(x, y, type = 'protocolTitan', wave = 5) {
+        // Boss sizes are much larger than regular enemies - Significantly increased health for challenging encounters
         const bossConfig = {
-            protocolTitan: { width: 120, height: 100, health: 1000, speed: 80 },
-            consensusDestroyer: { width: 140, height: 120, health: 1500, speed: 60 },
-            networkOverlord: { width: 160, height: 140, health: 2500, speed: 40 }
+            protocolTitan: { width: 120, height: 100, health: 3000, speed: 80 },
+            consensusDestroyer: { width: 140, height: 120, health: 5000, speed: 60 },
+            networkOverlord: { width: 160, height: 140, health: 8000, speed: 40 }
         };
 
         const config = bossConfig[type] || bossConfig.protocolTitan;
+
+        // Apply progressive difficulty scaling based on wave
+        const difficultyMultiplier = 1 + ((wave - 5) / 5) * 0.3; // 30% increase every 5 waves
+        config.health = Math.floor(config.health * difficultyMultiplier);
         super(x, y, 'boss');
 
         // Override enemy properties with boss-specific values
@@ -357,10 +392,11 @@ class Boss extends Enemy {
         this.warningFlash = false;
         this.warningTimer = 0;
 
-        // Override firing properties
-        this.shootCooldown = 500; // Faster firing than regular enemies
+        // Override firing properties with progressive scaling
+        const baseFireRate = 500;
+        this.shootCooldown = Math.max(200, baseFireRate - (wave - 5) * 20); // Faster firing with higher waves
 
-        console.log(`Boss spawned: ${type} with ${this.health} HP`);
+        console.log(`Boss spawned: ${type} with ${this.health} HP (Wave ${wave} scaling applied)`);
     }
 
     update(deltaTime, playerX, playerY) {
@@ -499,26 +535,8 @@ class Boss extends Enemy {
         const angle = Math.atan2(playerY - this.y, playerX - this.x);
         const speed = GAME_CONFIG.BULLET.ENEMY_SPEED;
 
-        gameState.createEnemyBullet(
-            this.x,
-            this.y + this.height / 2,
-            Math.cos(angle) * speed,
-            Math.sin(angle) * speed,
-            'boss'
-        );
-
-        this.triggerMuzzleFlash();
-    }
-
-    spreadAttack(playerX, playerY) {
-        // 5-shot spread
-        const baseAngle = Math.atan2(playerY - this.y, playerX - this.x);
-        const spread = Math.PI / 6; // 30 degrees
-        const speed = GAME_CONFIG.BULLET.ENEMY_SPEED;
-
-        for (let i = -2; i <= 2; i++) {
-            const angle = baseAngle + (i * spread / 4);
-            gameState.createEnemyBullet(
+        if (window.gameState) {
+            window.gameState.createEnemyBullet(
                 this.x,
                 this.y + this.height / 2,
                 Math.cos(angle) * speed,
@@ -528,6 +546,30 @@ class Boss extends Enemy {
         }
 
         this.triggerMuzzleFlash();
+        effectsManager.muzzleFlash(this.x, this.y + this.height / 2, 'boss');
+    }
+
+    spreadAttack(playerX, playerY) {
+        // 3-shot spread - reduced from 5 for better balance
+        const baseAngle = Math.atan2(playerY - this.y, playerX - this.x);
+        const spread = Math.PI / 4; // 45 degrees - increased from 30 for better spacing
+        const speed = GAME_CONFIG.BULLET.ENEMY_SPEED * 0.8; // Reduced speed for easier dodging
+
+        if (window.gameState) {
+            for (let i = -1; i <= 1; i++) {
+                const angle = baseAngle + (i * spread / 3);
+                window.gameState.createEnemyBullet(
+                    this.x,
+                    this.y + this.height / 2,
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed,
+                    'boss'
+                );
+            }
+        }
+
+        this.triggerMuzzleFlash();
+        effectsManager.muzzleFlash(this.x, this.y + this.height / 2, 'boss');
     }
 
     burstAttack(playerX, playerY) {
@@ -544,17 +586,20 @@ class Boss extends Enemy {
 
     laserAttack(playerX, playerY) {
         // Straight down laser beam (placeholder for now)
-        for (let i = 0; i < 5; i++) {
-            gameState.createEnemyBullet(
-                this.x,
-                this.y + this.height / 2,
-                0,
-                GAME_CONFIG.BULLET.ENEMY_SPEED * 1.5,
-                'laser'
-            );
+        if (window.gameState) {
+            for (let i = 0; i < 5; i++) {
+                window.gameState.createEnemyBullet(
+                    this.x,
+                    this.y + this.height / 2,
+                    0,
+                    GAME_CONFIG.BULLET.ENEMY_SPEED * 1.5,
+                    'laser'
+                );
+            }
         }
 
         this.triggerMuzzleFlash();
+        effectsManager.muzzleFlash(this.x, this.y + this.height / 2, 'laser');
         this.attackCooldown = 2000; // Longer cooldown for powerful attack
     }
 
@@ -618,7 +663,9 @@ class Boss extends Enemy {
             const x = this.x + Math.cos(angle) * distance;
             const y = this.y + Math.sin(angle) * distance;
 
-            gameState.powerUps.push(new PowerUp(x, y, rewards[i]));
+            if (window.gameState) {
+                window.gameState.powerUps.push(new PowerUp(x, y, rewards[i]));
+            }
         }
     }
 
@@ -705,6 +752,12 @@ class Boss extends Enemy {
         ctx.restore();
     }
 
+    triggerMuzzleFlash() {
+        // Trigger muzzle flash animation for boss attacks
+        this.isFiring = true;
+        this.muzzleFlashTimer = 0;
+    }
+
     isBoss() {
         return true;
     }
@@ -746,6 +799,22 @@ class PowerUp extends GameObject {
             case 'shield':
                 player.applyShield(); // 10 seconds of invincibility
                 audioManager.playSound('shieldPickup');
+                break;
+            case 'multiShot':
+                player.applyMultiShot(); // 10 seconds of 3-way shooting
+                audioManager.playSound('powerUpPickup');
+                break;
+            case 'homingMissiles':
+                player.applyHomingMissiles(); // 10 seconds of homing shots
+                audioManager.playSound('powerUpPickup');
+                break;
+            case 'invincibility':
+                player.applyInvincibility(); // 5 seconds of complete invincibility
+                audioManager.playSound('powerUpPickup');
+                break;
+            case 'superWeapon':
+                player.applySuperWeapon(); // 15 seconds of devastating firepower
+                audioManager.playSound('powerUpPickup');
                 break;
         }
     }
