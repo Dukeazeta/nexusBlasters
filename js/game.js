@@ -316,6 +316,7 @@ class NexusBlasters {
         // Update UI
         if (this.gameState.state === 'playing') {
             this.updateUI();
+            this.updateBossUI();
         }
         
         // Check game over
@@ -358,6 +359,48 @@ class NexusBlasters {
 
         // Reset game state to prevent multiple triggers
         this.gameState.state = 'gameOverShown';
+    }
+
+    updateBossUI() {
+        const bossWarning = document.getElementById('bossWarning');
+        const bossHealthBar = document.getElementById('bossHealthBar');
+
+        // Handle boss warning display
+        if (this.gameState.showingBossWarning) {
+            const timeLeft = Math.ceil((this.gameState.bossWarningDuration - this.gameState.bossWarningTimer) / 1000);
+            const bossType = this.gameState.getBossTypeForWave(this.gameState.wave);
+
+            const bossNames = {
+                protocolTitan: 'PROTOCOL BREACH TITAN',
+                consensusDestroyer: 'CONSENSUS DESTROYER',
+                networkOverlord: 'NETWORK OVERLORD'
+            };
+
+            bossWarning.querySelector('.boss-name').textContent = bossNames[bossType] || 'BOSS ENTITY';
+            bossWarning.querySelector('.warning-countdown').textContent = timeLeft;
+            bossWarning.classList.remove('hidden');
+        } else {
+            bossWarning.classList.add('hidden');
+        }
+
+        // Handle boss health bar display
+        if (this.gameState.currentBoss && this.gameState.currentBoss.hasEntered) {
+            const boss = this.gameState.currentBoss;
+            const healthPercent = (boss.health / boss.maxHealth) * 100;
+
+            const bossNames = {
+                protocolTitan: 'PROTOCOL BREACH TITAN',
+                consensusDestroyer: 'CONSENSUS DESTROYER',
+                networkOverlord: 'NETWORK OVERLORD'
+            };
+
+            bossHealthBar.querySelector('.boss-name-display').textContent = bossNames[boss.bossType] || 'BOSS ENTITY';
+            bossHealthBar.querySelector('.boss-health-fill').style.width = `${healthPercent}%`;
+            bossHealthBar.querySelector('.boss-phase-indicator').textContent = `PHASE ${boss.phase}`;
+            bossHealthBar.classList.remove('hidden');
+        } else {
+            bossHealthBar.classList.add('hidden');
+        }
     }
 
     updateAudioButton() {

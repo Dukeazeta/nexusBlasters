@@ -94,6 +94,12 @@ class AudioManager {
         this.sounds.gameStart = this.generateStartSound();
         this.sounds.gameOver = this.generateGameOverSound();
         this.sounds.waveComplete = this.generateWaveCompleteSound();
+
+        // Boss-specific sounds
+        this.sounds.bossWarning = this.generateBossWarningSound();
+        this.sounds.bossEnter = this.generateBossEnterSound();
+        this.sounds.bossPhaseChange = this.generateBossPhaseChangeSound();
+        this.sounds.bossDefeat = this.generateBossDefeatSound();
     }
     
     createAmbientSounds() {
@@ -344,6 +350,122 @@ class AudioManager {
 
             oscillator.start(this.audioContext.currentTime);
             oscillator.stop(this.audioContext.currentTime + duration);
+        };
+    }
+
+    generateBossWarningSound() {
+        if (!this.audioContext) return this.createFallbackSound();
+
+        return () => {
+            const duration = 2.0;
+
+            // Create ominous warning sound
+            const oscillator1 = this.audioContext.createOscillator();
+            const oscillator2 = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator1.connect(gainNode);
+            oscillator2.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            oscillator1.type = 'sawtooth';
+            oscillator2.type = 'triangle';
+
+            oscillator1.frequency.setValueAtTime(80, this.audioContext.currentTime);
+            oscillator1.frequency.linearRampToValueAtTime(120, this.audioContext.currentTime + duration);
+
+            oscillator2.frequency.setValueAtTime(160, this.audioContext.currentTime);
+            oscillator2.frequency.linearRampToValueAtTime(240, this.audioContext.currentTime + duration);
+
+            gainNode.gain.setValueAtTime(0.4 * this.sfxVolume * this.masterVolume, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+
+            oscillator1.start(this.audioContext.currentTime);
+            oscillator2.start(this.audioContext.currentTime);
+            oscillator1.stop(this.audioContext.currentTime + duration);
+            oscillator2.stop(this.audioContext.currentTime + duration);
+        };
+    }
+
+    generateBossEnterSound() {
+        if (!this.audioContext) return this.createFallbackSound();
+
+        return () => {
+            const duration = 1.5;
+
+            // Create dramatic entrance sound
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(60, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(200, this.audioContext.currentTime + 0.5);
+            oscillator.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + duration);
+
+            gainNode.gain.setValueAtTime(0.5 * this.sfxVolume * this.masterVolume, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+        };
+    }
+
+    generateBossPhaseChangeSound() {
+        if (!this.audioContext) return this.createFallbackSound();
+
+        return () => {
+            const duration = 1.0;
+
+            // Create phase transition sound
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(300, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(600, this.audioContext.currentTime + 0.3);
+            oscillator.frequency.exponentialRampToValueAtTime(150, this.audioContext.currentTime + duration);
+
+            gainNode.gain.setValueAtTime(0.4 * this.sfxVolume * this.masterVolume, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+        };
+    }
+
+    generateBossDefeatSound() {
+        if (!this.audioContext) return this.createFallbackSound();
+
+        return () => {
+            const duration = 2.5;
+
+            // Create epic victory sound
+            const frequencies = [220, 277, 330, 440]; // A-C#-E-A chord
+
+            frequencies.forEach((freq, index) => {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+
+                const startTime = this.audioContext.currentTime + index * 0.2;
+                gainNode.gain.setValueAtTime(0, startTime);
+                gainNode.gain.linearRampToValueAtTime(0.3 * this.sfxVolume * this.masterVolume, startTime + 0.2);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+                oscillator.start(startTime);
+                oscillator.stop(startTime + duration);
+            });
         };
     }
 

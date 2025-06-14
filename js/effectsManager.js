@@ -301,6 +301,67 @@ class EffectsManager {
                     ctx.lineTo(particle.x, particle.y + sparkleSize);
                     ctx.stroke();
                     break;
+
+                case 'warning':
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Add pulsing warning effect
+                    ctx.strokeStyle = particle.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+
+                case 'bossEntrance':
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Add energy trail effect
+                    ctx.strokeStyle = particle.color;
+                    ctx.lineWidth = particle.size * 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(particle.x, particle.y);
+                    ctx.lineTo(particle.x - particle.vx * 0.02, particle.y - particle.vy * 0.02);
+                    ctx.stroke();
+                    break;
+
+                case 'phaseTransition':
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Add electric effect
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size * 1.5, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+
+                case 'victory':
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Add victory sparkle
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    const victorySize = particle.size * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(particle.x - victorySize, particle.y);
+                    ctx.lineTo(particle.x + victorySize, particle.y);
+                    ctx.moveTo(particle.x, particle.y - victorySize);
+                    ctx.lineTo(particle.x, particle.y + victorySize);
+                    ctx.stroke();
+                    break;
             }
             
             ctx.restore();
@@ -454,6 +515,170 @@ class EffectsManager {
         }
 
         this.addFloatingText(400, 300, 'PROTOCOL SECURED!', GAME_CONFIG.COLORS.VERIFICATION_GREEN, 24);
+    }
+
+    // ===== BOSS-SPECIFIC EFFECTS =====
+
+    bossWarning(bossType) {
+        // Screen-wide warning effect
+        this.addScreenShake(20, 2000);
+
+        // Create warning particles across the screen
+        const particleCount = 100;
+
+        for (let i = 0; i < particleCount && this.particles.length < this.maxParticles; i++) {
+            const x = Utils.randomFloat(0, 800);
+            const y = Utils.randomFloat(0, 600);
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Utils.randomFloat(100, 200);
+            const size = Utils.randomFloat(3, 8);
+            const life = Utils.randomFloat(1.5, 3);
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: size,
+                maxSize: size,
+                life: life,
+                maxLife: life,
+                color: GAME_CONFIG.COLORS.THREAT_RED,
+                type: 'warning',
+                gravity: 0,
+                friction: 0.95
+            });
+        }
+
+        // Add warning text
+        this.addFloatingText(400, 200, 'THREAT DETECTED!', GAME_CONFIG.COLORS.THREAT_RED, 32);
+        this.addFloatingText(400, 240, `${bossType.toUpperCase()} INCOMING`, GAME_CONFIG.COLORS.THREAT_RED, 20);
+    }
+
+    bossEntered(x, y, bossType) {
+        // Epic entrance effect
+        this.addScreenShake(15, 1500);
+
+        // Create dramatic entrance particles
+        const particleCount = 60;
+
+        for (let i = 0; i < particleCount && this.particles.length < this.maxParticles; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount;
+            const distance = Utils.randomFloat(50, 150);
+            const speed = Utils.randomFloat(200, 400);
+            const size = Utils.randomFloat(4, 10);
+            const life = Utils.randomFloat(1, 2);
+
+            this.particles.push({
+                x: x + Math.cos(angle) * distance,
+                y: y + Math.sin(angle) * distance,
+                vx: -Math.cos(angle) * speed,
+                vy: -Math.sin(angle) * speed,
+                size: size,
+                maxSize: size,
+                life: life,
+                maxLife: life,
+                color: GAME_CONFIG.COLORS.THREAT_RED,
+                type: 'bossEntrance',
+                gravity: 0,
+                friction: 0.92
+            });
+        }
+
+        // Add entrance text
+        const bossNames = {
+            protocolTitan: 'PROTOCOL BREACH TITAN',
+            consensusDestroyer: 'CONSENSUS DESTROYER',
+            networkOverlord: 'NETWORK OVERLORD'
+        };
+
+        this.addFloatingText(400, 150, bossNames[bossType] || 'BOSS ENTITY', GAME_CONFIG.COLORS.THREAT_RED, 28);
+    }
+
+    bossPhaseTransition(x, y, phase) {
+        // Phase change effect
+        this.addScreenShake(12, 800);
+
+        // Create phase transition particles
+        const particleCount = 40;
+
+        for (let i = 0; i < particleCount && this.particles.length < this.maxParticles; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount;
+            const distance = 80;
+            const speed = Utils.randomFloat(150, 250);
+            const size = Utils.randomFloat(3, 7);
+            const life = Utils.randomFloat(0.8, 1.5);
+
+            this.particles.push({
+                x: x + Math.cos(angle) * distance,
+                y: y + Math.sin(angle) * distance,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: size,
+                maxSize: size,
+                life: life,
+                maxLife: life,
+                color: '#ffff44',
+                type: 'phaseTransition',
+                gravity: 0,
+                friction: 0.94
+            });
+        }
+
+        this.addFloatingText(x, y - 100, `PHASE ${phase}`, '#ffff44', 24);
+    }
+
+    bossHit(x, y) {
+        // Boss taking damage effect
+        this.addScreenShake(6, 150);
+
+        // Create hit sparks
+        this.createSparkParticles(x, y, Math.PI, 1.5);
+
+        // Add some explosion particles
+        this.createExplosionParticles(x, y, 0.8, '#ff8844');
+    }
+
+    bossDefeated(x, y, bossType) {
+        // Epic boss death effect
+        this.addScreenShake(25, 2000);
+
+        // Create massive explosion
+        this.createExplosionParticles(x, y, 3, GAME_CONFIG.COLORS.THREAT_RED);
+        this.createExplosionParticles(x, y, 2.5, '#ff8844');
+        this.createExplosionParticles(x, y, 2, '#ffff44');
+
+        // Create debris
+        this.createDebrisParticles(x, y, 3);
+
+        // Create victory particles
+        const particleCount = 80;
+
+        for (let i = 0; i < particleCount && this.particles.length < this.maxParticles; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Utils.randomFloat(100, 300);
+            const size = Utils.randomFloat(3, 8);
+            const life = Utils.randomFloat(2, 4);
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: size,
+                maxSize: size,
+                life: life,
+                maxLife: life,
+                color: GAME_CONFIG.COLORS.VERIFICATION_GREEN,
+                type: 'victory',
+                gravity: -30,
+                friction: 0.96
+            });
+        }
+
+        // Add victory text
+        this.addFloatingText(400, 250, 'BOSS DEFEATED!', GAME_CONFIG.COLORS.VERIFICATION_GREEN, 32);
+        this.addFloatingText(400, 290, '+10000 NEX POINTS', GAME_CONFIG.COLORS.PROOF_GOLD, 20);
     }
 }
 

@@ -309,6 +309,407 @@ class Enemy extends GameObject {
     }
 }
 
+// Boss class - Epic boss encounters
+class Boss extends Enemy {
+    constructor(x, y, type = 'protocolTitan') {
+        // Boss sizes are much larger than regular enemies
+        const bossConfig = {
+            protocolTitan: { width: 120, height: 100, health: 1000, speed: 80 },
+            consensusDestroyer: { width: 140, height: 120, health: 1500, speed: 60 },
+            networkOverlord: { width: 160, height: 140, health: 2500, speed: 40 }
+        };
+
+        const config = bossConfig[type] || bossConfig.protocolTitan;
+        super(x, y, 'boss');
+
+        // Override enemy properties with boss-specific values
+        this.width = config.width;
+        this.height = config.height;
+        this.health = config.health;
+        this.maxHealth = config.health;
+        this.speed = config.speed;
+        this.bossType = type;
+        this.points = 5000; // Massive point reward
+
+        // Boss-specific properties
+        this.phase = 1;
+        this.maxPhases = 3;
+        this.phaseTransitionTimer = 0;
+        this.isTransitioning = false;
+        this.entranceTimer = 3000; // 3 second dramatic entrance
+        this.hasEntered = false;
+
+        // Attack patterns
+        this.attackPattern = 'basic';
+        this.attackTimer = 0;
+        this.attackCooldown = 1000;
+        this.burstCount = 0;
+        this.maxBursts = 3;
+
+        // Movement patterns
+        this.movePattern = 'hover';
+        this.hoverDirection = 1;
+        this.targetX = x;
+        this.originalY = y;
+
+        // Visual effects
+        this.glowIntensity = 0;
+        this.warningFlash = false;
+        this.warningTimer = 0;
+
+        // Override firing properties
+        this.shootCooldown = 500; // Faster firing than regular enemies
+
+        console.log(`Boss spawned: ${type} with ${this.health} HP`);
+    }
+
+    update(deltaTime, playerX, playerY) {
+        // Handle dramatic entrance
+        if (!this.hasEntered) {
+            this.updateEntrance(deltaTime);
+            return;
+        }
+
+        // Handle phase transitions
+        if (this.isTransitioning) {
+            this.updatePhaseTransition(deltaTime);
+            return;
+        }
+
+        // Check for phase change
+        this.checkPhaseTransition();
+
+        // Update movement
+        this.updateBossMovement(deltaTime);
+
+        // Update attack patterns
+        this.updateBossAttacks(deltaTime, playerX, playerY);
+
+        // Update visual effects
+        this.updateBossEffects(deltaTime);
+
+        // Update firing animation
+        this.updateFiringAnimation(deltaTime);
+    }
+
+    updateEntrance(deltaTime) {
+        this.entranceTimer -= deltaTime;
+
+        // Slow descent during entrance
+        this.y += this.speed * 0.3 * (deltaTime / 1000);
+
+        // Warning flash effect
+        this.warningTimer += deltaTime;
+        this.warningFlash = Math.floor(this.warningTimer / 200) % 2 === 0;
+
+        if (this.entranceTimer <= 0) {
+            this.hasEntered = true;
+            this.targetX = this.x;
+            audioManager.playSound('bossEnter');
+            effectsManager.bossEntered(this.x, this.y, this.bossType);
+        }
+    }
+
+    updatePhaseTransition(deltaTime) {
+        this.phaseTransitionTimer -= deltaTime;
+
+        // Flash effect during transition
+        this.warningTimer += deltaTime;
+        this.warningFlash = Math.floor(this.warningTimer / 100) % 2 === 0;
+
+        if (this.phaseTransitionTimer <= 0) {
+            this.isTransitioning = false;
+            this.phase++;
+            this.updateAttackPattern();
+            audioManager.playSound('bossPhaseChange');
+            effectsManager.bossPhaseTransition(this.x, this.y, this.phase);
+        }
+    }
+
+    checkPhaseTransition() {
+        const healthPercent = this.health / this.maxHealth;
+        const phaseThreshold = (this.maxPhases - this.phase + 1) / this.maxPhases;
+
+        if (healthPercent <= phaseThreshold && this.phase < this.maxPhases && !this.isTransitioning) {
+            this.isTransitioning = true;
+            this.phaseTransitionTimer = 2000; // 2 second transition
+            effectsManager.addScreenShake(15, 1000);
+        }
+    }
+
+    updateBossMovement(deltaTime) {
+        const dt = deltaTime / 1000;
+
+        switch (this.movePattern) {
+            case 'hover':
+                // Gentle side-to-side movement
+                this.moveTimer += deltaTime;
+                const hoverSpeed = 50;
+                this.targetX += this.hoverDirection * hoverSpeed * dt;
+
+                // Bounce off screen edges
+                if (this.targetX <= 100 || this.targetX >= 700) {
+                    this.hoverDirection *= -1;
+                }
+
+                // Smooth movement toward target
+                this.x += (this.targetX - this.x) * 2 * dt;
+                break;
+
+            case 'aggressive':
+                // More erratic movement in later phases
+                this.moveTimer += deltaTime;
+                if (this.moveTimer >= 2000) {
+                    this.targetX = Utils.randomFloat(100, 700);
+                    this.moveTimer = 0;
+                }
+                this.x += (this.targetX - this.x) * 3 * dt;
+                break;
+        }
+    }
+
+    updateBossAttacks(deltaTime, playerX, playerY) {
+        this.attackTimer += deltaTime;
+
+        if (this.attackTimer >= this.attackCooldown) {
+            this.executeAttackPattern(playerX, playerY);
+            this.attackTimer = 0;
+        }
+    }
+
+    executeAttackPattern(playerX, playerY) {
+        switch (this.attackPattern) {
+            case 'basic':
+                this.basicAttack(playerX, playerY);
+                break;
+            case 'spread':
+                this.spreadAttack(playerX, playerY);
+                break;
+            case 'burst':
+                this.burstAttack(playerX, playerY);
+                break;
+            case 'laser':
+                this.laserAttack(playerX, playerY);
+                break;
+        }
+    }
+
+    basicAttack(playerX, playerY) {
+        // Single shot toward player
+        const angle = Math.atan2(playerY - this.y, playerX - this.x);
+        const speed = GAME_CONFIG.BULLET.ENEMY_SPEED;
+
+        gameState.createEnemyBullet(
+            this.x,
+            this.y + this.height / 2,
+            Math.cos(angle) * speed,
+            Math.sin(angle) * speed,
+            'boss'
+        );
+
+        this.triggerMuzzleFlash();
+    }
+
+    spreadAttack(playerX, playerY) {
+        // 5-shot spread
+        const baseAngle = Math.atan2(playerY - this.y, playerX - this.x);
+        const spread = Math.PI / 6; // 30 degrees
+        const speed = GAME_CONFIG.BULLET.ENEMY_SPEED;
+
+        for (let i = -2; i <= 2; i++) {
+            const angle = baseAngle + (i * spread / 4);
+            gameState.createEnemyBullet(
+                this.x,
+                this.y + this.height / 2,
+                Math.cos(angle) * speed,
+                Math.sin(angle) * speed,
+                'boss'
+            );
+        }
+
+        this.triggerMuzzleFlash();
+    }
+
+    burstAttack(playerX, playerY) {
+        // Rapid burst of 3 shots
+        if (this.burstCount < this.maxBursts) {
+            this.basicAttack(playerX, playerY);
+            this.burstCount++;
+            this.attackCooldown = 200; // Quick follow-up
+        } else {
+            this.burstCount = 0;
+            this.attackCooldown = 1500; // Longer pause after burst
+        }
+    }
+
+    laserAttack(playerX, playerY) {
+        // Straight down laser beam (placeholder for now)
+        for (let i = 0; i < 5; i++) {
+            gameState.createEnemyBullet(
+                this.x,
+                this.y + this.height / 2,
+                0,
+                GAME_CONFIG.BULLET.ENEMY_SPEED * 1.5,
+                'laser'
+            );
+        }
+
+        this.triggerMuzzleFlash();
+        this.attackCooldown = 2000; // Longer cooldown for powerful attack
+    }
+
+    updateAttackPattern() {
+        // Change attack patterns based on phase
+        switch (this.phase) {
+            case 1:
+                this.attackPattern = 'basic';
+                this.attackCooldown = 1000;
+                this.movePattern = 'hover';
+                break;
+            case 2:
+                this.attackPattern = 'spread';
+                this.attackCooldown = 800;
+                this.movePattern = 'hover';
+                break;
+            case 3:
+                this.attackPattern = 'burst';
+                this.attackCooldown = 600;
+                this.movePattern = 'aggressive';
+                break;
+        }
+    }
+
+    updateBossEffects(deltaTime) {
+        // Pulsing glow effect
+        this.glowIntensity = 0.5 + Math.sin(Date.now() * 0.005) * 0.3;
+
+        // Warning flash during transitions
+        if (this.isTransitioning || !this.hasEntered) {
+            this.warningTimer += deltaTime;
+        }
+    }
+
+    takeDamage(amount) {
+        const killed = super.takeDamage(amount);
+
+        if (killed) {
+            // Boss death effects
+            effectsManager.bossDefeated(this.x, this.y, this.bossType);
+            audioManager.playSound('bossDefeat');
+
+            // Spawn special power-ups
+            this.spawnBossRewards();
+        } else {
+            // Boss hit effects
+            effectsManager.bossHit(this.x, this.y);
+            effectsManager.addScreenShake(8, 200);
+        }
+
+        return killed;
+    }
+
+    spawnBossRewards() {
+        // Spawn multiple power-ups as rewards
+        const rewards = ['health', 'rapidFire', 'shield', 'speed'];
+
+        for (let i = 0; i < rewards.length; i++) {
+            const angle = (Math.PI * 2 * i) / rewards.length;
+            const distance = 60;
+            const x = this.x + Math.cos(angle) * distance;
+            const y = this.y + Math.sin(angle) * distance;
+
+            gameState.powerUps.push(new PowerUp(x, y, rewards[i]));
+        }
+    }
+
+    render(ctx) {
+        // Warning flash during entrance or transitions
+        if (this.warningFlash) {
+            ctx.save();
+            ctx.globalAlpha = 0.7;
+            ctx.fillStyle = GAME_CONFIG.COLORS.THREAT_RED;
+            ctx.fillRect(this.x - this.width / 2 - 10, this.y - this.height / 2 - 10,
+                        this.width + 20, this.height + 20);
+            ctx.restore();
+        }
+
+        // Boss glow effect
+        ctx.save();
+        ctx.shadowColor = GAME_CONFIG.COLORS.THREAT_RED;
+        ctx.shadowBlur = 20 * this.glowIntensity;
+
+        // Try to render boss sprite, fallback to colored rectangle
+        const spriteName = `boss${this.bossType.charAt(0).toUpperCase() + this.bossType.slice(1)}`;
+        const sprite = assetManager.getSprite(spriteName);
+
+        if (sprite) {
+            ctx.drawImage(sprite, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+        } else {
+            // Fallback rendering with boss-specific colors
+            const bossColors = {
+                protocolTitan: '#ff4444',
+                consensusDestroyer: '#8844ff',
+                networkOverlord: '#ff8844'
+            };
+
+            ctx.fillStyle = bossColors[this.bossType] || '#ff4444';
+            ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+
+            // Add some detail to distinguish from regular enemies
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(this.x - 10, this.y - 5, 20, 10);
+        }
+
+        ctx.restore();
+
+        // Draw muzzle flash if firing
+        if (this.isFiring) {
+            this.renderMuzzleFlash(ctx);
+        }
+
+        // Always show boss health bar
+        this.renderBossHealthBar(ctx);
+
+        // Show phase indicator
+        this.renderPhaseIndicator(ctx);
+    }
+
+    renderBossHealthBar(ctx) {
+        const barWidth = this.width + 40;
+        const barHeight = 8;
+        const barX = this.x - barWidth / 2;
+        const barY = this.y - this.height / 2 - 20;
+
+        // Background
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+
+        // Health bar with phase colors
+        const healthPercent = this.health / this.maxHealth;
+        const phaseColors = ['#ff4444', '#ff8844', '#ffff44'];
+        ctx.fillStyle = phaseColors[this.phase - 1] || '#ff4444';
+        ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+
+        // Border
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+    }
+
+    renderPhaseIndicator(ctx) {
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`PHASE ${this.phase}`, this.x, this.y - this.height / 2 - 35);
+        ctx.restore();
+    }
+
+    isBoss() {
+        return true;
+    }
+}
+
 // PowerUp class
 class PowerUp extends GameObject {
     constructor(x, y, type = 'health') {

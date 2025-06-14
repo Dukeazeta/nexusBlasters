@@ -19,6 +19,12 @@ class GameState {
         this.waveTimer = 0;
         this.powerUpSpawnTimer = 0;
         this.powerUpSpawnRate = GAME_CONFIG.POWERUP.SPAWN_RATE;
+
+        // Boss system
+        this.currentBoss = null;
+        this.bossWarningTimer = 0;
+        this.bossWarningDuration = 3000; // 3 second warning
+        this.showingBossWarning = false;
         
         // Make this globally accessible for other classes
         window.gameState = this;
@@ -43,6 +49,11 @@ class GameState {
         this.enemySpawnTimer = 0;
         this.waveTimer = 0;
         this.powerUpSpawnTimer = 0;
+
+        // Reset boss system
+        this.currentBoss = null;
+        this.bossWarningTimer = 0;
+        this.showingBossWarning = false;
     }
     
     update(deltaTime, inputManager, canvasWidth, canvasHeight) {
@@ -65,9 +76,14 @@ class GameState {
             }
         }
         
-        // Spawn enemies
-        this.updateEnemySpawning(deltaTime, canvasWidth);
-        
+        // Handle boss system
+        this.updateBossSystem(deltaTime, canvasWidth);
+
+        // Spawn enemies (only if no boss active)
+        if (!this.currentBoss && !this.showingBossWarning) {
+            this.updateEnemySpawning(deltaTime, canvasWidth);
+        }
+
         // Spawn power-ups
         this.updatePowerUpSpawning(deltaTime, canvasWidth);
         
@@ -289,11 +305,97 @@ class GameState {
         }
     }
     
+    updateBossSystem(deltaTime, canvasWidth) {
+        // Check if it's time for a boss wave
+        if (this.shouldSpawnBoss() && !this.currentBoss && !this.showingBossWarning) {
+            this.startBossWarning();
+        }
+
+        // Handle boss warning countdown
+        if (this.showingBossWarning) {
+            this.bossWarningTimer += deltaTime;
+
+            if (this.bossWarningTimer >= this.bossWarningDuration) {
+                this.spawnBoss(canvasWidth);
+                this.showingBossWarning = false;
+                this.bossWarningTimer = 0;
+            }
+        }
+
+        // Update current boss
+        if (this.currentBoss) {
+            if (!this.currentBoss.active) {
+                this.handleBossDefeated();
+            }
+        }
+    }
+
+    shouldSpawnBoss() {
+        // Boss waves: 5, 10, 15, 20, 25, etc.
+        return this.wave % 5 === 0 && this.wave >= 5;
+    }
+
+    startBossWarning() {
+        this.showingBossWarning = true;
+        this.bossWarningTimer = 0;
+
+        // Determine boss type based on wave
+        const bossType = this.getBossTypeForWave(this.wave);
+
+        // Clear existing enemies to make room for boss
+        this.enemies = [];
+
+        // Show warning effects
+        effectsManager.bossWarning(bossType);
+        audioManager.playSound('bossWarning');
+
+        console.log(`Boss warning started for wave ${this.wave}: ${bossType}`);
+    }
+
+    getBossTypeForWave(wave) {
+        if (wave >= 25) return 'networkOverlord';
+        if (wave >= 15) return 'consensusDestroyer';
+        return 'protocolTitan';
+    }
+
+    spawnBoss(canvasWidth) {
+        const bossType = this.getBossTypeForWave(this.wave);
+        const x = canvasWidth / 2;
+        const y = -100; // Start above screen
+
+        this.currentBoss = new Boss(x, y, bossType);
+        this.enemies.push(this.currentBoss);
+
+        // Stop regular enemy spawning during boss fight
+        this.enemySpawnTimer = 0;
+
+        console.log(`Boss spawned: ${bossType} for wave ${this.wave}`);
+    }
+
+    handleBossDefeated() {
+        if (this.currentBoss) {
+            // Award massive points
+            this.score += 10000;
+
+            // Clear boss reference
+            this.currentBoss = null;
+
+            // Advance to next wave immediately
+            this.wave++;
+            this.waveTimer = 0;
+
+            // Update enemy fire rates for new wave
+            this.updateEnemyFireRates();
+
+            console.log(`Boss defeated! Advanced to wave ${this.wave}`);
+        }
+    }
+
     updateWaveProgression(deltaTime) {
         this.waveTimer += deltaTime;
 
-        // New wave every 30 seconds
-        if (this.waveTimer >= 30000) {
+        // New wave every 30 seconds (unless boss wave)
+        if (this.waveTimer >= 30000 && !this.shouldSpawnBoss()) {
             audioManager.playSound('waveComplete');
             effectsManager.waveCompleted();
             this.wave++;
