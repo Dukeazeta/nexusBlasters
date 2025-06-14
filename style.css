@@ -286,6 +286,14 @@ body {
 
     #gameUI {
         font-size: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    #scoreDisplay, #healthDisplay, #waveDisplay {
+        font-size: 11px;
+        padding: 6px 10px;
     }
 
     .game-button {
@@ -295,6 +303,55 @@ body {
 
     #mobileControls {
         display: block;
+    }
+
+    /* Boss elements mobile adjustments */
+    .boss-warning {
+        width: 90%;
+        max-width: 350px;
+        padding: 20px;
+    }
+
+    .boss-warning .warning-text {
+        font-size: 18px;
+    }
+
+    .boss-warning .boss-name {
+        font-size: 14px;
+    }
+
+    .boss-warning .warning-countdown {
+        font-size: 36px;
+    }
+
+    .boss-health-bar {
+        width: 90%;
+        max-width: 350px;
+        padding: 10px;
+        top: 10px;
+    }
+
+    .boss-name-display {
+        font-size: 14px;
+    }
+
+    .boss-health-container {
+        height: 16px;
+    }
+
+    .boss-phase-indicator {
+        font-size: 10px;
+    }
+
+    /* Power-up timers mobile adjustment */
+    #powerUpTimers {
+        top: 80px;
+        font-size: 10px;
+    }
+
+    .timer-display {
+        font-size: 10px;
+        padding: 3px 6px;
     }
 }
 

@@ -331,8 +331,8 @@ class GameState {
     }
 
     shouldSpawnBoss() {
-        // Boss waves: 5, 10, 15, 20, 25, etc.
-        return this.wave % 5 === 0 && this.wave >= 5;
+        // Boss waves: 3, 5, 10, 15, 20, 25, etc. (3 for testing, then every 5)
+        return (this.wave === 3) || (this.wave % 5 === 0 && this.wave >= 5);
     }
 
     startBossWarning() {

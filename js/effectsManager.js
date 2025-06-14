@@ -371,12 +371,16 @@ class EffectsManager {
     // ===== FLOATING TEXT SYSTEM =====
     
     addFloatingText(x, y, text, color = '#ffffff', size = 16) {
+        // Make font size responsive to screen size
+        const isMobile = window.innerWidth <= 768;
+        const responsiveSize = isMobile ? Math.max(size * 0.7, 12) : size;
+
         this.floatingTexts.push({
             x: x,
             y: y,
             text: text,
             color: color,
-            size: size,
+            size: responsiveSize,
             life: 2.0,
             maxLife: 2.0,
             vy: -50 // Float upward
@@ -491,8 +495,8 @@ class EffectsManager {
         const particleCount = 50;
 
         for (let i = 0; i < particleCount && this.particles.length < this.maxParticles; i++) {
-            const x = Utils.randomFloat(0, 800);
-            const y = Utils.randomFloat(0, 600);
+            const x = Utils.randomFloat(0, window.innerWidth);
+            const y = Utils.randomFloat(0, window.innerHeight);
             const angle = Math.random() * Math.PI * 2;
             const speed = Utils.randomFloat(50, 150);
             const size = Utils.randomFloat(2, 5);
@@ -514,7 +518,10 @@ class EffectsManager {
             });
         }
 
-        this.addFloatingText(400, 300, 'PROTOCOL SECURED!', GAME_CONFIG.COLORS.VERIFICATION_GREEN, 24);
+        // Use responsive positioning for floating text
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        this.addFloatingText(centerX, centerY, 'PROTOCOL SECURED!', GAME_CONFIG.COLORS.VERIFICATION_GREEN, 24);
     }
 
     // ===== BOSS-SPECIFIC EFFECTS =====
@@ -527,8 +534,8 @@ class EffectsManager {
         const particleCount = 100;
 
         for (let i = 0; i < particleCount && this.particles.length < this.maxParticles; i++) {
-            const x = Utils.randomFloat(0, 800);
-            const y = Utils.randomFloat(0, 600);
+            const x = Utils.randomFloat(0, window.innerWidth);
+            const y = Utils.randomFloat(0, window.innerHeight);
             const angle = Math.random() * Math.PI * 2;
             const speed = Utils.randomFloat(100, 200);
             const size = Utils.randomFloat(3, 8);
@@ -551,8 +558,11 @@ class EffectsManager {
         }
 
         // Add warning text
-        this.addFloatingText(400, 200, 'THREAT DETECTED!', GAME_CONFIG.COLORS.THREAT_RED, 32);
-        this.addFloatingText(400, 240, `${bossType.toUpperCase()} INCOMING`, GAME_CONFIG.COLORS.THREAT_RED, 20);
+        // Use responsive positioning for warning text
+        const centerX = window.innerWidth / 2;
+        const topY = window.innerHeight * 0.3;
+        this.addFloatingText(centerX, topY, 'THREAT DETECTED!', GAME_CONFIG.COLORS.THREAT_RED, 32);
+        this.addFloatingText(centerX, topY + 40, `${bossType.toUpperCase()} INCOMING`, GAME_CONFIG.COLORS.THREAT_RED, 20);
     }
 
     bossEntered(x, y, bossType) {
@@ -592,7 +602,10 @@ class EffectsManager {
             networkOverlord: 'NETWORK OVERLORD'
         };
 
-        this.addFloatingText(400, 150, bossNames[bossType] || 'BOSS ENTITY', GAME_CONFIG.COLORS.THREAT_RED, 28);
+        // Use responsive positioning for boss entrance text
+        const centerX = window.innerWidth / 2;
+        const topY = window.innerHeight * 0.25;
+        this.addFloatingText(centerX, topY, bossNames[bossType] || 'BOSS ENTITY', GAME_CONFIG.COLORS.THREAT_RED, 28);
     }
 
     bossPhaseTransition(x, y, phase) {
@@ -676,9 +689,11 @@ class EffectsManager {
             });
         }
 
-        // Add victory text
-        this.addFloatingText(400, 250, 'BOSS DEFEATED!', GAME_CONFIG.COLORS.VERIFICATION_GREEN, 32);
-        this.addFloatingText(400, 290, '+10000 NEX POINTS', GAME_CONFIG.COLORS.PROOF_GOLD, 20);
+        // Add victory text with responsive positioning
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        this.addFloatingText(centerX, centerY - 50, 'BOSS DEFEATED!', GAME_CONFIG.COLORS.VERIFICATION_GREEN, 32);
+        this.addFloatingText(centerX, centerY - 10, '+10000 NEX POINTS', GAME_CONFIG.COLORS.PROOF_GOLD, 20);
     }
 }
 
