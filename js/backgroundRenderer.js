@@ -302,8 +302,16 @@ class BackgroundRenderer {
     
     // Initialize background
     init(width, height) {
-        this.createSpaceElements();
-        this.backgroundCanvas = this.createStarField(width, height);
+        try {
+            console.log('Initializing background renderer...');
+            this.createSpaceElements();
+            console.log('Space elements created');
+            this.backgroundCanvas = this.createStarField(width, height);
+            console.log('Star field created');
+        } catch (error) {
+            console.error('Error initializing background:', error);
+            throw error;
+        }
     }
     
     // Update background animation

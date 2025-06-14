@@ -1,17 +1,17 @@
-# 🚀 Nexus Blasters
-**Defend the Network**
+# 🛡️ Nexus Protocol Defender
+**Secure the Verifiable Internet**
 
-A pixel art space shooter built for the Nexus Playground contest. Pilot your ship through waves of enemies to protect the Nexus network from incoming threats!
+A pixel art space shooter built for the Nexus Playground contest. Pilot your verification node through hostile protocol space to protect the decentralized supercomputer from malicious agents threatening network consensus!
 
 ![Game Preview](https://img.shields.io/badge/Status-Playable-brightgreen) ![Platform](https://img.shields.io/badge/Platform-Browser-blue) ![License](https://img.shields.io/badge/License-Open%20Source-orange)
 
 ## 🎮 Game Features
 
 ### **Core Gameplay**
-- **Epic Space Combat**: Pilot a detailed 64x64 pixel art ship with animated engine flames
-- **Heart-Based Health**: 6-heart system inspired by classic arcade games
-- **Progressive Difficulty**: Enemy firing rates increase every wave (2000ms → 500ms minimum)
-- **Strategic Power-ups**: Permanent rapid fire until damage, timed shields and speed boosts
+- **Verification Node Combat**: Pilot a detailed 64x64 pixel art verification node with animated processing cores
+- **Node Integrity System**: 6-heart system representing network consensus strength
+- **Progressive Protocol Threats**: Malicious agent attack rates increase every protocol wave
+- **Strategic Proof Fragments**: Permanent proof burst until damage, timed consensus shields and velocity boosts
 
 ### **Visual Excellence**
 - **Pixel-Perfect Art**: Hand-crafted sprites with crisp, clean aesthetics
@@ -33,12 +33,12 @@ A pixel art space shooter built for the Nexus Playground contest. Pilot your shi
 - **Pause**: ESC or P key
 
 ### **Objective**
-Survive as long as possible while defending the Nexus network! Destroy enemies to earn points and collect power-ups to enhance your ship.
+Maintain network consensus as long as possible while defending the Verifiable Internet! Eliminate malicious agents to earn NEX Points and collect proof fragments to enhance your verification node.
 
 ### **Scoring**
-- **Scout Enemies**: 100 points
-- **Fighter Enemies**: 250 points
-- **Survival Bonus**: Points increase with wave progression
+- **Protocol Disruptors**: 100 NEX Points
+- **Consensus Breakers**: 250 NEX Points
+- **Network Defense Bonus**: NEX Points increase with protocol wave progression
 
 ## ⚡ Power-Up System
 

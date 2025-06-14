@@ -24,44 +24,45 @@
         <div id="gameUI">
             <!-- Score Display -->
             <div id="scoreDisplay">
-                <span id="scoreLabel">SCORE:</span>
+                <span id="scoreLabel">NEX POINTS:</span>
                 <span id="scoreValue">0</span>
             </div>
-            
+
             <!-- Health Display (Hearts) -->
             <div id="healthDisplay">
-                <span id="healthLabel">HEARTS:</span>
+                <span id="healthLabel">NODE INTEGRITY:</span>
                 <div id="heartsContainer"></div>
             </div>
 
             <!-- Wave Display -->
             <div id="waveDisplay">
-                <span id="waveLabel">WAVE:</span>
+                <span id="waveLabel">PROTOCOL:</span>
                 <span id="waveValue">1</span>
             </div>
         </div>
 
         <!-- Power-up Timers -->
         <div id="powerUpTimers">
-            <div id="speedTimer" class="timer-display">SPEED: 0s</div>
-            <div id="shieldTimer" class="timer-display">SHIELD: 0s</div>
-            <div id="rapidFireIndicator" class="timer-display">RAPID FIRE: ACTIVE</div>
+            <div id="speedTimer" class="timer-display">VELOCITY BOOST: 0s</div>
+            <div id="shieldTimer" class="timer-display">CONSENSUS SHIELD: 0s</div>
+            <div id="rapidFireIndicator" class="timer-display">PROOF BURST: ACTIVE</div>
         </div>
         
         <!-- Start Screen -->
         <div id="startScreen" class="screen">
             <div class="screen-content">
-                <h1 id="gameTitle">NEXUS BLASTERS</h1>
-                <p id="gameSubtitle">Defend the Network</p>
+                <h1 id="gameTitle">NEXUS PROTOCOL DEFENDER</h1>
+                <p id="gameSubtitle">Secure the Verifiable Internet</p>
                 <div id="instructions">
-                    <p>🖱️ Move mouse to control ship</p>
-                    <p>📱 Touch and drag on mobile</p>
-                    <p>🔫 Auto-fire enabled</p>
-                    <p>🛡️ Protect the Nexus nodes!</p>
+                    <p>🖱️ Pilot your verification node with mouse</p>
+                    <p>📱 Touch controls for mobile nodes</p>
+                    <p>🔫 Auto-targeting malicious agents</p>
+                    <p>⚡ Collect proof fragments for upgrades</p>
+                    <p>🛡️ Maintain network consensus integrity</p>
                 </div>
-                <button id="startButton" class="game-button">START GAME</button>
+                <button id="startButton" class="game-button">INITIALIZE NODE</button>
                 <div id="nexusCredit">
-                    <p>Built for <strong>Nexus Playground</strong></p>
+                    <p>Defending the <strong>Verifiable Internet</strong></p>
                     <p>#NexusPlayground @NexusLabs</p>
                 </div>
             </div>
@@ -70,13 +71,13 @@
         <!-- Game Over Screen -->
         <div id="gameOverScreen" class="screen hidden">
             <div class="screen-content">
-                <h2 id="gameOverTitle">NETWORK BREACHED</h2>
+                <h2 id="gameOverTitle">CONSENSUS FAILURE</h2>
                 <div id="finalStats">
-                    <p>Final Score: <span id="finalScore">0</span></p>
-                    <p>Waves Survived: <span id="finalWave">0</span></p>
-                    <p>Threats Eliminated: <span id="finalKills">0</span></p>
+                    <p>NEX Points Earned: <span id="finalScore">0</span></p>
+                    <p>Protocol Waves: <span id="finalWave">0</span></p>
+                    <p>Malicious Agents Eliminated: <span id="finalKills">0</span></p>
                 </div>
-                <button id="restartButton" class="game-button">DEFEND AGAIN</button>
+                <button id="restartButton" class="game-button">REINITIALIZE NODE</button>
                 <button id="shareButton" class="game-button secondary">SHARE SCORE</button>
             </div>
         </div>
@@ -84,8 +85,8 @@
         <!-- Pause Screen -->
         <div id="pauseScreen" class="screen hidden">
             <div class="screen-content">
-                <h2>GAME PAUSED</h2>
-                <p>Network defense on hold...</p>
+                <h2>NODE SUSPENDED</h2>
+                <p>Verification process paused...</p>
                 <button id="resumeButton" class="game-button">RESUME</button>
                 <button id="mainMenuButton" class="game-button secondary">MAIN MENU</button>
             </div>
@@ -101,7 +102,7 @@
     <!-- Loading indicator -->
     <div id="loadingScreen">
         <div class="loading-content">
-            <h2>INITIALIZING NEXUS DEFENSE SYSTEM...</h2>
+            <h2>INITIALIZING VERIFICATION NODE...</h2>
             <div class="loading-bar">
                 <div class="loading-progress"></div>
             </div>

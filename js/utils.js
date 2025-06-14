@@ -119,10 +119,19 @@ const GAME_CONFIG = {
         SCROLL_SPEED: 20
     },
     COLORS: {
-        NEXUS_BLUE: '#4a90e2',
-        NEXUS_LIGHT: '#6bb6ff',
-        NEXUS_DARK: '#357abd',
-        SPACE_DARK: '#000814',
-        SPACE_DEEP: '#0a0a2e'
+        // Official Nexus brand colors based on nexus.xyz
+        NEXUS_PRIMARY: '#1a1a2e',      // Deep navy from their site
+        NEXUS_SECONDARY: '#16213e',     // Darker blue accent
+        NEXUS_ACCENT: '#0f3460',       // Bright blue for highlights
+        NEXUS_BLUE: '#4a90e2',        // Classic Nexus blue (compatibility)
+        NEXUS_DARK: '#357abd',        // Darker blue variant (compatibility)
+        NEXUS_LIGHT: '#6bb6ff',       // Light blue variant (compatibility)
+        NEXUS_TEXT: '#ffffff',         // Clean white text
+        NEXUS_GLOW: '#4a90e2',        // Cyan glow effects
+        VERIFICATION_GREEN: '#00ff88', // Success/verification color
+        THREAT_RED: '#ff4444',        // Malicious agent color
+        PROOF_GOLD: '#ffd700',        // Proof fragment color
+        SPACE_DARK: '#0a0a1a',        // Deep space background (compatibility)
+        SPACE_VOID: '#0a0a1a'         // Deep space background
     }
 };

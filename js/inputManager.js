@@ -64,7 +64,6 @@ class InputManager {
             // Clear touch position when touch ends to prevent ghost movement
             this.touch.x = 0;
             this.touch.y = 0;
-            console.log('Touch ended - cleared touch state');
         });
 
         this.canvas.addEventListener('touchcancel', (e) => {
@@ -72,7 +71,6 @@ class InputManager {
             this.touch.active = false;
             this.touch.x = 0;
             this.touch.y = 0;
-            console.log('Touch cancelled - cleared touch state');
         });
 
         // Prevent scrolling on touch

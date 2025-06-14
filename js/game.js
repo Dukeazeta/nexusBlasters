@@ -93,18 +93,29 @@ class NexusBlasters {
     }
     
     loadAssets() {
-        // Create pixel art assets
-        assetManager.createSprites();
-        
-        // Initialize background renderer
-        backgroundRenderer.init(this.canvas.width, this.canvas.height);
-        
-        // Simulate loading time for effect
-        setTimeout(() => {
-            document.getElementById('loadingScreen').style.display = 'none';
-            this.gameState.state = 'menu';
-            this.gameLoop();
-        }, 1500);
+        try {
+            console.log('Starting asset loading...');
+
+            // Create pixel art assets
+            assetManager.createSprites();
+            console.log('Sprites created successfully');
+
+            // Initialize background renderer
+            backgroundRenderer.init(this.canvas.width, this.canvas.height);
+            console.log('Background renderer initialized');
+
+            // Simulate loading time for effect
+            setTimeout(() => {
+                console.log('Loading complete, showing menu');
+                document.getElementById('loadingScreen').style.display = 'none';
+                this.gameState.state = 'menu';
+                this.gameLoop();
+            }, 1500);
+        } catch (error) {
+            console.error('Error during asset loading:', error);
+            // Show error and try to continue
+            document.getElementById('loadingScreen').innerHTML = '<h2>Loading Error - Check Console</h2>';
+        }
     }
     
     startGame() {
@@ -146,12 +157,12 @@ class NexusBlasters {
     }
     
     shareScore() {
-        const text = `I just scored ${this.gameState.score} points defending the Nexus network in Nexus Blasters! 🚀 #NexusPlayground @NexusLabs`;
+        const text = `I just earned ${this.gameState.score} NEX Points defending the Verifiable Internet in Nexus Protocol Defender! 🛡️ Securing consensus across the decentralized supercomputer. #NexusPlayground @NexusLabs`;
         const url = window.location.href;
-        
+
         if (navigator.share) {
             navigator.share({
-                title: 'Nexus Blasters Score',
+                title: 'Nexus Protocol Defender Score',
                 text: text,
                 url: url
             });
@@ -220,9 +231,9 @@ class NexusBlasters {
             timersContainer = document.createElement('div');
             timersContainer.id = 'powerUpTimers';
             timersContainer.innerHTML = `
-                <div id="speedTimer" class="timer-display">SPEED: 0s</div>
-                <div id="shieldTimer" class="timer-display">SHIELD: 0s</div>
-                <div id="rapidFireIndicator" class="timer-display">RAPID FIRE: ACTIVE</div>
+                <div id="speedTimer" class="timer-display">VELOCITY BOOST: 0s</div>
+                <div id="shieldTimer" class="timer-display">CONSENSUS SHIELD: 0s</div>
+                <div id="rapidFireIndicator" class="timer-display">PROOF BURST: ACTIVE</div>
             `;
             document.getElementById('gameContainer').appendChild(timersContainer);
         }
@@ -231,35 +242,35 @@ class NexusBlasters {
     updatePowerUpTimers() {
         const player = this.gameState.player;
 
-        // Update speed boost timer
+        // Update velocity boost timer
         const speedTime = Math.ceil(player.getSpeedBoostTimeLeft() / 1000);
         const speedTimer = document.getElementById('speedTimer');
         if (speedTimer) {
             if (speedTime > 0) {
-                speedTimer.textContent = `SPEED: ${speedTime}s`;
+                speedTimer.textContent = `VELOCITY BOOST: ${speedTime}s`;
                 speedTimer.style.display = 'block';
             } else {
                 speedTimer.style.display = 'none';
             }
         }
 
-        // Update shield timer
+        // Update consensus shield timer
         const shieldTime = Math.ceil(player.getShieldTimeLeft() / 1000);
         const shieldTimer = document.getElementById('shieldTimer');
         if (shieldTimer) {
             if (shieldTime > 0) {
-                shieldTimer.textContent = `SHIELD: ${shieldTime}s`;
+                shieldTimer.textContent = `CONSENSUS SHIELD: ${shieldTime}s`;
                 shieldTimer.style.display = 'block';
             } else {
                 shieldTimer.style.display = 'none';
             }
         }
 
-        // Update rapid fire indicator
+        // Update proof burst indicator
         const rapidFireIndicator = document.getElementById('rapidFireIndicator');
         if (rapidFireIndicator) {
             if (player.rapidFirePermanent) {
-                rapidFireIndicator.textContent = 'RAPID FIRE: ACTIVE';
+                rapidFireIndicator.textContent = 'PROOF BURST: ACTIVE';
                 rapidFireIndicator.style.display = 'block';
             } else {
                 rapidFireIndicator.style.display = 'none';

@@ -8,37 +8,52 @@ class AssetManager {
     
     // Create all pixel art sprites programmatically
     createSprites() {
-        this.createPlayerShip();
-        this.createEngineFlames();
-        this.createEnemyShips();
-        this.createBullets();
-        this.createMuzzleFlashes();
-        this.createPowerUps();
-        this.createHeartSystem();
-        this.createParticles();
-        this.createBackgroundElements();
-        
-        this.loaded = true;
-        this.loadingProgress = 100;
+        try {
+            console.log('Creating player ship...');
+            this.createPlayerShip();
+            console.log('Creating engine flames...');
+            this.createEngineFlames();
+            console.log('Creating enemy ships...');
+            this.createEnemyShips();
+            console.log('Creating bullets...');
+            this.createBullets();
+            console.log('Creating muzzle flashes...');
+            this.createMuzzleFlashes();
+            console.log('Creating power-ups...');
+            this.createPowerUps();
+            console.log('Creating heart system...');
+            this.createHeartSystem();
+            console.log('Creating particles...');
+            this.createParticles();
+            console.log('Creating background elements...');
+            this.createBackgroundElements();
+
+            this.loaded = true;
+            this.loadingProgress = 100;
+            console.log('All sprites created successfully');
+        } catch (error) {
+            console.error('Error creating sprites:', error);
+            throw error;
+        }
     }
     
     createPlayerShip() {
         const { canvas, ctx } = Utils.createPixelCanvas(64, 64);
         
-        // Ship body (blue/cyan Nexus colors)
-        ctx.fillStyle = GAME_CONFIG.COLORS.NEXUS_BLUE;
-        ctx.fillRect(28, 16, 8, 32);   // Main body
-        ctx.fillRect(24, 24, 16, 16);  // Center section
-        ctx.fillRect(26, 20, 12, 8);   // Upper body
+        // Verification Node body (official Nexus colors)
+        ctx.fillStyle = GAME_CONFIG.COLORS.NEXUS_ACCENT;
+        ctx.fillRect(28, 16, 8, 32);   // Main verification core
+        ctx.fillRect(24, 24, 16, 16);  // Processing center
+        ctx.fillRect(26, 20, 12, 8);   // Upper computation unit
         
-        // Ship wings (larger and more detailed)
-        ctx.fillStyle = GAME_CONFIG.COLORS.NEXUS_DARK;
-        ctx.fillRect(12, 32, 16, 8);   // Left wing
-        ctx.fillRect(36, 32, 16, 8);   // Right wing
-        ctx.fillRect(8, 34, 12, 6);    // Left wing extension
-        ctx.fillRect(44, 34, 12, 6);   // Right wing extension
-        ctx.fillRect(16, 36, 8, 4);    // Left wing detail
-        ctx.fillRect(40, 36, 8, 4);    // Right wing detail
+        // Network connection arrays (larger and more detailed)
+        ctx.fillStyle = GAME_CONFIG.COLORS.NEXUS_PRIMARY;
+        ctx.fillRect(12, 32, 16, 8);   // Left network array
+        ctx.fillRect(36, 32, 16, 8);   // Right network array
+        ctx.fillRect(8, 34, 12, 6);    // Left array extension
+        ctx.fillRect(44, 34, 12, 6);   // Right array extension
+        ctx.fillRect(16, 36, 8, 4);    // Left connection detail
+        ctx.fillRect(40, 36, 8, 4);    // Right connection detail
         
         // Ship nose (more detailed)
         ctx.fillStyle = '#ffffff';
@@ -75,10 +90,10 @@ class AssetManager {
         ctx.fillRect(37, 30, 3, 12);   // Right hull detail
         ctx.fillRect(28, 44, 8, 2);    // Lower hull detail
         
-        // Hull highlights
-        ctx.fillStyle = GAME_CONFIG.COLORS.NEXUS_LIGHT;
-        ctx.fillRect(26, 26, 2, 16);   // Left highlight
-        ctx.fillRect(36, 26, 2, 16);   // Right highlight
+        // Verification indicators
+        ctx.fillStyle = GAME_CONFIG.COLORS.VERIFICATION_GREEN;
+        ctx.fillRect(26, 26, 2, 16);   // Left verification strip
+        ctx.fillRect(36, 26, 2, 16);   // Right verification strip
         
         this.sprites.playerShip = canvas;
     }
@@ -149,49 +164,49 @@ class AssetManager {
     }
     
     createEnemyShips() {
-        // Enemy Type 1: Basic Scout (36x36 - 50% larger)
+        // Malicious Agent Type 1: Protocol Disruptor (36x36 - 50% larger)
         const { canvas: scout, ctx: scoutCtx } = Utils.createPixelCanvas(36, 36);
 
-        // Red enemy ship (scaled up)
-        scoutCtx.fillStyle = '#ff4444';
+        // Threat-red malicious agent (scaled up)
+        scoutCtx.fillStyle = GAME_CONFIG.COLORS.THREAT_RED;
         scoutCtx.fillRect(15, 6, 6, 18);    // Main body
         scoutCtx.fillRect(12, 12, 12, 6);   // Wings
         scoutCtx.fillStyle = '#aa0000';
-        scoutCtx.fillRect(16, 3, 4, 6);     // Nose
+        scoutCtx.fillRect(16, 3, 4, 6);     // Attack vector
         scoutCtx.fillStyle = '#ffaa00';
-        scoutCtx.fillRect(13, 24, 3, 5);    // Left engine
-        scoutCtx.fillRect(20, 24, 3, 5);    // Right engine
+        scoutCtx.fillRect(13, 24, 3, 5);    // Left disruptor
+        scoutCtx.fillRect(20, 24, 3, 5);    // Right disruptor
 
-        // Additional details for larger size
-        scoutCtx.fillStyle = '#ffffff';
-        scoutCtx.fillRect(17, 8, 2, 2);     // Cockpit
+        // Malicious indicators
+        scoutCtx.fillStyle = '#ff8888';
+        scoutCtx.fillRect(17, 8, 2, 2);     // Threat scanner
         scoutCtx.fillStyle = '#cc2222';
-        scoutCtx.fillRect(14, 14, 2, 4);    // Left wing detail
-        scoutCtx.fillRect(20, 14, 2, 4);    // Right wing detail
+        scoutCtx.fillRect(14, 14, 2, 4);    // Left attack module
+        scoutCtx.fillRect(20, 14, 2, 4);    // Right attack module
 
         this.sprites.enemyScout = scout;
 
-        // Enemy Type 2: Heavy Fighter (48x42 - 50% larger)
+        // Malicious Agent Type 2: Consensus Breaker (48x42 - 50% larger)
         const { canvas: fighter, ctx: fighterCtx } = Utils.createPixelCanvas(48, 42);
 
-        // Purple enemy ship (scaled up)
+        // Dark purple consensus threat (scaled up)
         fighterCtx.fillStyle = '#8844ff';
         fighterCtx.fillRect(18, 6, 12, 24);  // Main body
-        fighterCtx.fillRect(12, 15, 24, 9);  // Wide wings
+        fighterCtx.fillRect(12, 15, 24, 9);  // Wide attack wings
         fighterCtx.fillStyle = '#4400aa';
-        fighterCtx.fillRect(21, 3, 6, 6);    // Nose
-        fighterCtx.fillStyle = '#ff4400';
-        fighterCtx.fillRect(15, 30, 4, 6);   // Left engine
-        fighterCtx.fillRect(29, 30, 4, 6);   // Right engine
+        fighterCtx.fillRect(21, 3, 6, 6);    // Breach vector
+        fighterCtx.fillStyle = GAME_CONFIG.COLORS.THREAT_RED;
+        fighterCtx.fillRect(15, 30, 4, 6);   // Left breach engine
+        fighterCtx.fillRect(29, 30, 4, 6);   // Right breach engine
 
-        // Additional details for larger size
+        // Consensus attack systems
         fighterCtx.fillStyle = '#aa66ff';
-        fighterCtx.fillRect(20, 12, 8, 6);   // Center section
-        fighterCtx.fillStyle = '#ffffff';
-        fighterCtx.fillRect(22, 9, 4, 3);    // Cockpit
+        fighterCtx.fillRect(20, 12, 8, 6);   // Attack core
+        fighterCtx.fillStyle = '#ff8888';
+        fighterCtx.fillRect(22, 9, 4, 3);    // Threat processor
         fighterCtx.fillStyle = '#6622cc';
-        fighterCtx.fillRect(14, 18, 4, 6);   // Left wing detail
-        fighterCtx.fillRect(30, 18, 4, 6);   // Right wing detail
+        fighterCtx.fillRect(14, 18, 4, 6);   // Left breach module
+        fighterCtx.fillRect(30, 18, 4, 6);   // Right breach module
 
         this.sprites.enemyFighter = fighter;
     }
@@ -313,94 +328,89 @@ class AssetManager {
     }
     
     createPowerUps() {
-        // Health power-up (redesigned heart)
+        // Node Integrity Restoration (redesigned with Nexus hexagon)
         const { canvas: health, ctx: healthCtx } = Utils.createPixelCanvas(20, 20);
 
-        // Heart shape
-        healthCtx.fillStyle = '#ff4444';
-        // Top curves
-        healthCtx.fillRect(4, 6, 4, 4);   // Left curve
-        healthCtx.fillRect(12, 6, 4, 4);  // Right curve
-        // Main body
-        healthCtx.fillRect(2, 8, 16, 6);
-        healthCtx.fillRect(4, 14, 12, 4);
-        healthCtx.fillRect(6, 18, 8, 2);
+        // Hexagonal integrity symbol
+        healthCtx.fillStyle = GAME_CONFIG.COLORS.VERIFICATION_GREEN;
+        // Hexagon shape
+        healthCtx.fillRect(6, 4, 8, 2);   // Top
+        healthCtx.fillRect(4, 6, 12, 8);  // Middle
+        healthCtx.fillRect(6, 14, 8, 2);  // Bottom
 
-        // Heart highlight
-        healthCtx.fillStyle = '#ff8888';
-        healthCtx.fillRect(5, 7, 2, 2);   // Left highlight
-        healthCtx.fillRect(13, 7, 2, 2);  // Right highlight
-        healthCtx.fillRect(4, 9, 12, 2);  // Center highlight
+        // Inner cross for restoration
+        healthCtx.fillStyle = '#ffffff';
+        healthCtx.fillRect(8, 6, 4, 8);   // Vertical
+        healthCtx.fillRect(6, 8, 8, 4);   // Horizontal
 
         // Glow effect
-        healthCtx.fillStyle = '#ffaaaa';
-        healthCtx.fillRect(3, 7, 1, 8);   // Left glow
-        healthCtx.fillRect(16, 7, 1, 8);  // Right glow
+        healthCtx.fillStyle = GAME_CONFIG.COLORS.NEXUS_GLOW;
+        healthCtx.fillRect(5, 5, 1, 10);  // Left glow
+        healthCtx.fillRect(14, 5, 1, 10); // Right glow
 
         this.sprites.healthPowerUp = health;
 
-        // Speed power-up (redesigned with wings)
+        // Velocity Boost (redesigned with network acceleration)
         const { canvas: speed, ctx: speedCtx } = Utils.createPixelCanvas(20, 20);
 
-        // Wing design
-        speedCtx.fillStyle = '#ffff00';
-        // Main wings
-        speedCtx.fillRect(2, 8, 6, 4);    // Left wing
-        speedCtx.fillRect(12, 8, 6, 4);   // Right wing
-        speedCtx.fillRect(6, 6, 8, 8);    // Center body
+        // Network acceleration symbol
+        speedCtx.fillStyle = GAME_CONFIG.COLORS.PROOF_GOLD;
+        // Arrow design pointing forward
+        speedCtx.fillRect(2, 8, 12, 4);   // Main arrow body
+        speedCtx.fillRect(14, 6, 4, 8);   // Arrow head
+        speedCtx.fillRect(16, 4, 2, 12);  // Arrow tip
 
-        // Wing details
+        // Speed trails
         speedCtx.fillStyle = '#ffffff';
-        speedCtx.fillRect(3, 9, 4, 2);    // Left wing highlight
-        speedCtx.fillRect(13, 9, 4, 2);   // Right wing highlight
-        speedCtx.fillRect(8, 8, 4, 4);    // Center highlight
+        speedCtx.fillRect(4, 9, 8, 2);    // Center highlight
+        speedCtx.fillRect(1, 7, 3, 1);    // Top trail
+        speedCtx.fillRect(1, 12, 3, 1);   // Bottom trail
 
-        // Speed lines
-        speedCtx.fillStyle = '#ffff88';
-        speedCtx.fillRect(1, 10, 2, 1);   // Left speed line
-        speedCtx.fillRect(17, 10, 2, 1);  // Right speed line
+        // Velocity lines
+        speedCtx.fillStyle = GAME_CONFIG.COLORS.NEXUS_GLOW;
+        speedCtx.fillRect(0, 9, 2, 2);    // Trail effect
 
         this.sprites.speedPowerUp = speed;
 
-        // Rapid Fire power-up (redesigned with bullets)
+        // Proof Burst (redesigned with verification symbols)
         const { canvas: rapidFire, ctx: rfCtx } = Utils.createPixelCanvas(20, 20);
 
-        // Multiple bullets design
-        rfCtx.fillStyle = '#00ffff';
-        // Three bullets
-        rfCtx.fillRect(6, 2, 2, 6);       // Top bullet
-        rfCtx.fillRect(12, 2, 2, 6);      // Top right bullet
-        rfCtx.fillRect(9, 6, 2, 6);       // Center bullet
-        rfCtx.fillRect(3, 10, 2, 6);      // Bottom left bullet
-        rfCtx.fillRect(15, 10, 2, 6);     // Bottom right bullet
+        // Multiple proof fragments
+        rfCtx.fillStyle = GAME_CONFIG.COLORS.NEXUS_GLOW;
+        // Proof fragment pattern
+        rfCtx.fillRect(6, 2, 2, 6);       // Top fragment
+        rfCtx.fillRect(12, 2, 2, 6);      // Top right fragment
+        rfCtx.fillRect(9, 6, 2, 6);       // Center fragment
+        rfCtx.fillRect(3, 10, 2, 6);      // Bottom left fragment
+        rfCtx.fillRect(15, 10, 2, 6);     // Bottom right fragment
 
-        // Bullet highlights
-        rfCtx.fillStyle = '#ffffff';
-        rfCtx.fillRect(6, 2, 2, 3);       // Top bullet highlight
-        rfCtx.fillRect(12, 2, 2, 3);      // Top right highlight
-        rfCtx.fillRect(9, 6, 2, 3);       // Center highlight
+        // Verification highlights
+        rfCtx.fillStyle = GAME_CONFIG.COLORS.VERIFICATION_GREEN;
+        rfCtx.fillRect(6, 2, 2, 3);       // Top verification
+        rfCtx.fillRect(12, 2, 2, 3);      // Top right verification
+        rfCtx.fillRect(9, 6, 2, 3);       // Center verification
 
         this.sprites.rapidFirePowerUp = rapidFire;
 
-        // Shield power-up (redesigned with hexagon)
+        // Consensus Shield (redesigned with network protection)
         const { canvas: shield, ctx: shieldCtx } = Utils.createPixelCanvas(20, 20);
 
-        // Hexagonal shield
-        shieldCtx.fillStyle = '#00aaff';
+        // Consensus protection hexagon
+        shieldCtx.fillStyle = GAME_CONFIG.COLORS.NEXUS_ACCENT;
         // Hexagon shape
         shieldCtx.fillRect(6, 4, 8, 2);   // Top
         shieldCtx.fillRect(4, 6, 12, 8);  // Middle
         shieldCtx.fillRect(6, 14, 8, 2);  // Bottom
 
-        // Shield energy
-        shieldCtx.fillStyle = '#88ddff';
+        // Network protection energy
+        shieldCtx.fillStyle = GAME_CONFIG.COLORS.NEXUS_GLOW;
         shieldCtx.fillRect(7, 5, 6, 1);   // Top energy
         shieldCtx.fillRect(5, 7, 10, 6);  // Center energy
         shieldCtx.fillRect(7, 14, 6, 1);  // Bottom energy
 
-        // Shield core
-        shieldCtx.fillStyle = '#ffffff';
-        shieldCtx.fillRect(8, 8, 4, 4);   // Bright core
+        // Consensus core
+        shieldCtx.fillStyle = GAME_CONFIG.COLORS.VERIFICATION_GREEN;
+        shieldCtx.fillRect(8, 8, 4, 4);   // Bright verification core
 
         this.sprites.shieldPowerUp = shield;
     }

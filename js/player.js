@@ -173,10 +173,8 @@ class Player {
             return false; // No damage taken due to shield
         }
 
-        console.log(`Player taking ${amount} damage. Hearts before: ${this.hearts}`);
         this.hearts -= amount;
         this.hearts = Math.max(0, this.hearts);
-        console.log(`Hearts after: ${this.hearts}`);
 
         // Losing a heart deactivates rapid fire
         if (this.hearts < this.maxHearts) {
@@ -210,11 +208,7 @@ class Player {
     }
 
     isDead() {
-        const dead = this.hearts <= 0;
-        if (dead) {
-            console.log(`Player is dead. Hearts: ${this.hearts}`);
-        }
-        return dead;
+        return this.hearts <= 0;
     }
 
     getHearts() {
