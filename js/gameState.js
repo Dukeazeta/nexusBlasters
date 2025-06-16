@@ -151,15 +151,21 @@ class GameState {
             this.maxCombo = this.combo;
         }
 
-        // Show combo effect
+        // Show combo effect with enhanced visuals
         if (this.combo >= 5) {
-            effectsManager.addFloatingText(
-                this.player.x,
-                this.player.y - 40,
-                `${this.combo}x COMBO!`,
-                GAME_CONFIG.COLORS.PROOF_GOLD,
-                16
-            );
+            if (this.combo % 5 === 0 && this.combo >= 10) {
+                // Use new combo effect for milestone combos
+                effectsManager.addComboEffect(this.player.x, this.player.y, this.combo);
+            } else {
+                // Use floating text for smaller combos
+                effectsManager.addFloatingText(
+                    this.player.x,
+                    this.player.y - 40,
+                    `${this.combo}x COMBO!`,
+                    GAME_CONFIG.COLORS.PROOF_GOLD,
+                    16
+                );
+            }
         }
 
         // Check combo achievements
@@ -217,6 +223,9 @@ class GameState {
     }
 
     showAchievement(achievement) {
+        // Show achievement notification with enhanced UI
+        uiAnimations.showAchievement(achievement.title, achievement.description);
+
         // Show achievement notification
         effectsManager.addFloatingText(
             400,
@@ -445,8 +454,9 @@ class GameState {
                         this.score += totalPoints;
                         this.kills++;
 
-                        // Add combo
+                        // Add combo and show damage number
                         this.addCombo();
+                        effectsManager.addDamageNumber(enemy.x, enemy.y, actualDamage, false);
 
                         // Check achievements
                         if (!this.achievements.firstKill) {
@@ -477,6 +487,7 @@ class GameState {
             
             if (Utils.rectCollision(playerBounds, powerUpBounds)) {
                 effectsManager.powerUpCollected(powerUp.x, powerUp.y, powerUp.type);
+                uiAnimations.showPowerUpCollected(powerUp.type);
                 powerUp.applyEffect(this.player);
                 this.powerUps.splice(i, 1);
             }
@@ -530,6 +541,7 @@ class GameState {
 
         // Show warning effects
         effectsManager.bossWarning(bossType);
+        uiAnimations.showBossWarning();
         audioManager.playSound('bossWarning');
 
         console.log(`Boss warning started for wave ${this.wave}: ${bossType}`);
@@ -597,6 +609,8 @@ class GameState {
         if (this.waveTimer >= 30000 && !this.shouldSpawnBoss()) {
             audioManager.playSound('waveComplete');
             effectsManager.waveCompleted();
+            uiAnimations.showWaveComplete(this.wave);
+            uiAnimations.showWaveTransition(this.wave + 1);
             this.wave++;
             this.waveTimer = 0;
 

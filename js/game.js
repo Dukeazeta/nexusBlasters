@@ -309,9 +309,12 @@ class NexusBlasters {
         
         // Update background
         backgroundRenderer.update(this.deltaTime);
-        
+
         // Update game state
         this.gameState.update(this.deltaTime, this.inputManager, this.canvas.width, this.canvas.height);
+
+        // Update UI animations
+        uiAnimations.update(this.deltaTime);
         
         // Update UI
         if (this.gameState.state === 'playing') {

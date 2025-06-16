@@ -5,7 +5,11 @@ class InputManager {
         this.mouse = { x: 0, y: 0, pressed: false };
         this.keys = {};
         this.touch = { x: 0, y: 0, active: false };
-        
+
+        // Mobile touch controls
+        this.touchMovement = { x: 0, y: 0 };
+        this.touchFiring = false;
+
         this.setupEventListeners();
     }
     
@@ -135,37 +139,8 @@ class InputManager {
         return false;
     }
     
-    // Get movement input from WASD or arrow keys
-    getMovementInput() {
-        const movement = { x: 0, y: 0 };
-        
-        if (this.isKeyPressed('ArrowLeft') || this.isKeyPressed('KeyA')) {
-            movement.x -= 1;
-        }
-        if (this.isKeyPressed('ArrowRight') || this.isKeyPressed('KeyD')) {
-            movement.x += 1;
-        }
-        if (this.isKeyPressed('ArrowUp') || this.isKeyPressed('KeyW')) {
-            movement.y -= 1;
-        }
-        if (this.isKeyPressed('ArrowDown') || this.isKeyPressed('KeyS')) {
-            movement.y += 1;
-        }
-        
-        // Normalize diagonal movement
-        if (movement.x !== 0 && movement.y !== 0) {
-            const length = Math.sqrt(movement.x * movement.x + movement.y * movement.y);
-            movement.x /= length;
-            movement.y /= length;
-        }
-        
-        return movement;
-    }
-    
-    // Check for shooting input
-    isShooting() {
-        return this.isKeyPressed('Space') || this.isInputActive();
-    }
+
+
     
     // Check for pause input
     isPausePressed() {
@@ -188,9 +163,69 @@ class InputManager {
         this.touch.y = 0;
     }
     
+    // Mobile touch control methods
+    setTouchMovement(deltaX, deltaY) {
+        // Normalize touch movement to -1 to 1 range
+        const sensitivity = 0.01;
+        this.touchMovement.x = Math.max(-1, Math.min(1, deltaX * sensitivity));
+        this.touchMovement.y = Math.max(-1, Math.min(1, deltaY * sensitivity));
+    }
+
+    setTouchFiring(firing) {
+        this.touchFiring = firing;
+    }
+
+    // Enhanced movement input that includes touch controls
+    getMovementInput() {
+        const movement = { x: 0, y: 0 };
+
+        // Keyboard input
+        if (this.isKeyPressed('ArrowLeft') || this.isKeyPressed('KeyA')) {
+            movement.x -= 1;
+        }
+        if (this.isKeyPressed('ArrowRight') || this.isKeyPressed('KeyD')) {
+            movement.x += 1;
+        }
+        if (this.isKeyPressed('ArrowUp') || this.isKeyPressed('KeyW')) {
+            movement.y -= 1;
+        }
+        if (this.isKeyPressed('ArrowDown') || this.isKeyPressed('KeyS')) {
+            movement.y += 1;
+        }
+
+        // Add touch movement
+        movement.x += this.touchMovement.x;
+        movement.y += this.touchMovement.y;
+
+        // Clamp to -1 to 1 range
+        movement.x = Math.max(-1, Math.min(1, movement.x));
+        movement.y = Math.max(-1, Math.min(1, movement.y));
+
+        // Normalize diagonal movement
+        if (movement.x !== 0 && movement.y !== 0) {
+            const length = Math.sqrt(movement.x * movement.x + movement.y * movement.y);
+            if (length > 1) {
+                movement.x /= length;
+                movement.y /= length;
+            }
+        }
+
+        return movement;
+    }
+
+    // Enhanced shooting input that includes touch controls
+    isShooting() {
+        return this.isKeyPressed('Space') || this.isInputActive() || this.touchFiring;
+    }
+
     // Update method for any per-frame input processing
     update() {
-        // Any input processing that needs to happen each frame
-        // Currently empty but available for future use
+        // Decay touch movement over time for smoother control
+        this.touchMovement.x *= 0.9;
+        this.touchMovement.y *= 0.9;
+
+        // Clear very small movements to prevent jitter
+        if (Math.abs(this.touchMovement.x) < 0.01) this.touchMovement.x = 0;
+        if (Math.abs(this.touchMovement.y) < 0.01) this.touchMovement.y = 0;
     }
 }

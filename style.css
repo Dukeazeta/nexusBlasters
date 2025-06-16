@@ -538,3 +538,319 @@ body {
     font-weight: bold;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
 }
+
+/* ===== UI ANIMATIONS AND NOTIFICATIONS ===== */
+
+/* Game Notifications */
+.game-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 20, 40, 0.95);
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 14px;
+    z-index: 2000;
+    border: 2px solid;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.notification-info {
+    border-color: #00ffff;
+    box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
+}
+
+.notification-success {
+    border-color: #00ff88;
+    box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+}
+
+.notification-warning {
+    border-color: #ffaa00;
+    box-shadow: 0 4px 20px rgba(255, 170, 0, 0.3);
+}
+
+.notification-error {
+    border-color: #ff4444;
+    box-shadow: 0 4px 20px rgba(255, 68, 68, 0.3);
+}
+
+.notification-achievement {
+    border-color: #ffd700;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2));
+}
+
+.notification-enter {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Mobile notification adjustments */
+.mobile-notification {
+    font-size: 12px;
+    padding: 10px 20px;
+    max-width: 90%;
+}
+
+/* Wave Transition */
+.wave-transition {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 2500;
+    opacity: 0;
+    scale: 0.5;
+    transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wave-transition-enter {
+    opacity: 1;
+    scale: 1;
+}
+
+.wave-number {
+    font-family: 'Courier New', monospace;
+    font-size: 48px;
+    font-weight: bold;
+    color: #00ffff;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+    margin-bottom: 10px;
+}
+
+.wave-subtitle {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Screen Flash Effect */
+.screen-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1500;
+    transition: opacity 0.2s ease;
+}
+
+/* Enhanced UI Element Animations */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.pulse-animation {
+    animation: pulse-glow 1s ease-in-out;
+}
+
+.shake-animation {
+    animation: shake 0.3s ease-in-out;
+}
+
+/* Smooth transitions for all UI elements */
+#gameUI > div {
+    transition: all 0.3s ease;
+}
+
+#scoreDisplay, #healthDisplay, #waveDisplay {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#scoreDisplay:hover, #healthDisplay:hover, #waveDisplay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+}
+
+/* Mobile wave transition adjustments */
+@media (max-width: 768px) {
+    .wave-number {
+        font-size: 36px;
+    }
+
+    .wave-subtitle {
+        font-size: 14px;
+    }
+
+    .game-notification {
+        font-size: 12px;
+        padding: 8px 16px;
+    }
+}
+
+/* ===== MOBILE TOUCH CONTROLS ===== */
+
+.touch-controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .touch-controls {
+        display: block;
+    }
+}
+
+.touch-move-area {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 120px;
+    height: 120px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 50%;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+.touch-move-area.active {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.6);
+    transform: scale(1.1);
+}
+
+.touch-indicator {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #00ffff;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+.touch-fire-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 68, 68, 0.1);
+    border: 2px solid rgba(255, 68, 68, 0.3);
+    border-radius: 50%;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+.touch-fire-button.active {
+    background: rgba(255, 68, 68, 0.3);
+    border-color: rgba(255, 68, 68, 0.8);
+    transform: scale(1.1);
+}
+
+.fire-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 0 5px rgba(255, 68, 68, 0.5));
+}
+
+.touch-pause-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+    font-size: 20px;
+}
+
+.touch-pause-button.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+}
+
+/* Landscape orientation adjustments */
+.landscape .touch-move-area {
+    bottom: 30px;
+    left: 30px;
+    width: 100px;
+    height: 100px;
+}
+
+.landscape .touch-fire-button {
+    bottom: 30px;
+    right: 30px;
+    width: 70px;
+    height: 70px;
+}
+
+.landscape .touch-pause-button {
+    top: 30px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+}
+
+/* High contrast mode */
+.high-contrast .touch-move-area {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #ffffff;
+}
+
+.high-contrast .touch-fire-button {
+    background: rgba(255, 0, 0, 0.3);
+    border-color: #ff0000;
+}
+
+.high-contrast .touch-pause-button {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: #ffffff;
+}
+
+/* Reduced motion mode */
+.reduced-motion .touch-move-area,
+.reduced-motion .touch-fire-button,
+.reduced-motion .touch-pause-button {
+    transition: none;
+}
+
+.reduced-motion .touch-move-area.active,
+.reduced-motion .touch-fire-button.active,
+.reduced-motion .touch-pause-button.active {
+    transform: none;
+}

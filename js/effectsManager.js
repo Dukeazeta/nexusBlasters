@@ -36,8 +36,41 @@ class EffectsManager {
             debris: [],
             energy: []
         };
-        
-        console.log('Effects Manager initialized');
+
+        // Advanced effects
+        this.lightningEffects = [];
+        this.rippleEffects = [];
+        this.damageNumbers = [];
+        this.comboEffects = [];
+
+        // Performance tracking
+        this.performanceMode = this.detectPerformanceMode();
+
+        console.log('Effects Manager initialized with performance mode:', this.performanceMode);
+    }
+
+    // ===== PERFORMANCE DETECTION =====
+
+    detectPerformanceMode() {
+        // Detect device performance capabilities
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isLowEnd = window.innerWidth <= 768 || window.devicePixelRatio < 2;
+        const hasLimitedMemory = navigator.deviceMemory && navigator.deviceMemory < 4;
+
+        if (isMobile || isLowEnd || hasLimitedMemory) {
+            return 'low'; // Reduced particle counts and effects
+        } else if (window.innerWidth >= 1920 && window.devicePixelRatio >= 2) {
+            return 'high'; // Full effects with enhanced visuals
+        }
+        return 'medium'; // Standard effects
+    }
+
+    getParticleMultiplier() {
+        switch (this.performanceMode) {
+            case 'low': return 0.5;
+            case 'high': return 1.5;
+            default: return 1.0;
+        }
     }
     
     // ===== SCREEN SHAKE SYSTEM =====
@@ -385,6 +418,27 @@ class EffectsManager {
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     break;
+
+                case 'combo':
+                    ctx.fillStyle = particle.color;
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = particle.size * 2;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Add star effect for combo particles
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    const starSize = particle.size * 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(particle.x - starSize, particle.y);
+                    ctx.lineTo(particle.x + starSize, particle.y);
+                    ctx.moveTo(particle.x, particle.y - starSize);
+                    ctx.lineTo(particle.x, particle.y + starSize);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    break;
             }
             
             ctx.restore();
@@ -554,6 +608,160 @@ class EffectsManager {
         }
     }
 
+    // ===== DAMAGE NUMBERS SYSTEM =====
+
+    addDamageNumber(x, y, damage, isCritical = false) {
+        const color = isCritical ? '#ffff00' : '#ff6666';
+        const size = isCritical ? 20 : 16;
+        const isMobile = window.innerWidth <= 768;
+        const responsiveSize = isMobile ? Math.max(size * 0.7, 12) : size;
+
+        this.damageNumbers.push({
+            x: x + (Math.random() - 0.5) * 20,
+            y: y,
+            damage: damage,
+            color: color,
+            size: responsiveSize,
+            life: 1.5,
+            maxLife: 1.5,
+            vy: -80,
+            vx: (Math.random() - 0.5) * 40,
+            isCritical: isCritical
+        });
+    }
+
+    updateDamageNumbers(deltaTime) {
+        const dt = deltaTime / 1000;
+
+        for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
+            const number = this.damageNumbers[i];
+
+            number.x += number.vx * dt;
+            number.y += number.vy * dt;
+            number.life -= dt;
+
+            // Slow down over time
+            number.vx *= 0.98;
+            number.vy *= 0.98;
+
+            if (number.life <= 0) {
+                this.damageNumbers.splice(i, 1);
+            }
+        }
+    }
+
+    renderDamageNumbers(ctx) {
+        for (const number of this.damageNumbers) {
+            const alpha = number.life / number.maxLife;
+            const scale = number.isCritical ? 1 + (1 - alpha) * 0.5 : 1;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = number.color;
+            ctx.font = `bold ${number.size * scale}px 'Courier New', monospace`;
+            ctx.textAlign = 'center';
+
+            if (number.isCritical) {
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.strokeText(number.damage.toString(), number.x, number.y);
+            }
+
+            ctx.fillText(number.damage.toString(), number.x, number.y);
+            ctx.restore();
+        }
+    }
+
+    // ===== COMBO EFFECTS SYSTEM =====
+
+    addComboEffect(x, y, comboCount) {
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight * 0.3;
+
+        this.comboEffects.push({
+            x: centerX,
+            y: centerY,
+            comboCount: comboCount,
+            life: 2.0,
+            maxLife: 2.0,
+            scale: 0.5,
+            maxScale: 1.5,
+            color: this.getComboColor(comboCount)
+        });
+
+        // Add particles around the combo text
+        this.createComboParticles(centerX, centerY, comboCount);
+    }
+
+    getComboColor(comboCount) {
+        if (comboCount >= 50) return '#ff00ff'; // Purple for mega combos
+        if (comboCount >= 25) return '#ffff00'; // Yellow for high combos
+        if (comboCount >= 10) return '#ff8800'; // Orange for medium combos
+        return '#00ff88'; // Green for basic combos
+    }
+
+    createComboParticles(x, y, comboCount) {
+        const particleCount = Math.min(comboCount, 20) * this.getParticleMultiplier();
+        const color = this.getComboColor(comboCount);
+
+        for (let i = 0; i < particleCount && this.particles.length < this.maxParticles; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount;
+            const speed = Utils.randomFloat(100, 200);
+            const size = Utils.randomFloat(2, 5);
+            const life = Utils.randomFloat(1, 2);
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: size,
+                maxSize: size,
+                life: life,
+                maxLife: life,
+                color: color,
+                type: 'combo',
+                gravity: -50,
+                friction: 0.95
+            });
+        }
+    }
+
+    updateComboEffects(deltaTime) {
+        const dt = deltaTime / 1000;
+
+        for (let i = this.comboEffects.length - 1; i >= 0; i--) {
+            const combo = this.comboEffects[i];
+
+            combo.life -= dt;
+            const lifeRatio = combo.life / combo.maxLife;
+            combo.scale = combo.maxScale * (0.5 + lifeRatio * 0.5);
+
+            if (combo.life <= 0) {
+                this.comboEffects.splice(i, 1);
+            }
+        }
+    }
+
+    renderComboEffects(ctx) {
+        for (const combo of this.comboEffects) {
+            const alpha = combo.life / combo.maxLife;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = combo.color;
+            ctx.font = `bold ${24 * combo.scale}px 'Courier New', monospace`;
+            ctx.textAlign = 'center';
+
+            // Add glow effect
+            ctx.shadowColor = combo.color;
+            ctx.shadowBlur = 10;
+
+            ctx.fillText(`${combo.comboCount}x COMBO!`, combo.x, combo.y);
+            ctx.restore();
+        }
+    }
+
     // ===== MAIN UPDATE AND RENDER =====
 
     update(deltaTime) {
@@ -562,6 +770,8 @@ class EffectsManager {
         this.updateTrailParticles(deltaTime);
         this.updateGlowParticles(deltaTime);
         this.updateFloatingTexts(deltaTime);
+        this.updateDamageNumbers(deltaTime);
+        this.updateComboEffects(deltaTime);
     }
     
     render(ctx) {
@@ -570,6 +780,8 @@ class EffectsManager {
         this.renderParticles(ctx);
         this.renderTrailParticles(ctx);
         this.renderFloatingTexts(ctx);
+        this.renderDamageNumbers(ctx);
+        this.renderComboEffects(ctx);
     }
     
     // ===== CONVENIENCE METHODS =====
