@@ -183,4 +183,42 @@ class PowerUp extends GameObject {
     isTimed() {
         return this.getDuration() > 0;
     }
+
+    // Apply the power-up effect to the player
+    applyEffect(player) {
+        switch (this.type) {
+            case 'health':
+                player.heal(1); // Restore exactly one heart
+                audioManager.playSound('healthPickup');
+                break;
+            case 'speed':
+                player.applySpeedBoost(); // 10 seconds with visual effects
+                audioManager.playSound('speedPickup');
+                break;
+            case 'rapidFire':
+                player.applyRapidFire(); // Permanent until damage
+                audioManager.playSound('rapidFirePickup');
+                break;
+            case 'shield':
+                player.applyShield(); // 10 seconds of invincibility
+                audioManager.playSound('shieldPickup');
+                break;
+            case 'multiShot':
+                player.applyMultiShot(); // 10 seconds of 3-way shooting
+                audioManager.playSound('powerUpPickup');
+                break;
+            case 'homingMissiles':
+                player.applyHomingMissiles(); // 10 seconds of homing shots
+                audioManager.playSound('powerUpPickup');
+                break;
+            case 'invincibility':
+                player.applyInvincibility(); // 5 seconds of complete invincibility
+                audioManager.playSound('powerUpPickup');
+                break;
+            case 'superWeapon':
+                player.applySuperWeapon(); // 15 seconds of devastating firepower
+                audioManager.playSound('powerUpPickup');
+                break;
+        }
+    }
 }

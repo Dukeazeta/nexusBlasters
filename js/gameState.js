@@ -141,8 +141,8 @@ class GameState {
             this.maxCombo = this.combo;
         }
 
-        // Show combo effect with enhanced visuals
-        if (this.combo >= 5) {
+        // Show combo effect with enhanced visuals (only if player exists)
+        if (this.combo >= 5 && this.player) {
             if (this.combo % 5 === 0 && this.combo >= 10) {
                 // Use new combo effect for milestone combos
                 effectsManager.addComboEffect(this.player.x, this.player.y, this.combo);
@@ -237,7 +237,7 @@ class GameState {
         for (let i = 0; i < 20; i++) {
             const angle = (Math.PI * 2 * i) / 20;
             const speed = 100;
-            effectsManager.particles.push({
+            effectsManager.particleSystem.particles.push({
                 x: 400,
                 y: 215,
                 vx: Math.cos(angle) * speed,
