@@ -130,14 +130,30 @@
     <!-- Game Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/audioManager.js"></script>
+    <!-- Effects System Modules (load before main effectsManager) -->
+    <script src="js/particleSystem.js"></script>
+    <script src="js/screenEffects.js"></script>
+    <script src="js/visualEffects.js"></script>
+    <script src="js/bossEffects.js"></script>
     <script src="js/effectsManager.js"></script>
     <script src="js/uiAnimations.js"></script>
     <script src="js/mobileOptimization.js"></script>
     <script src="js/assetManager.js"></script>
     <script src="js/inputManager.js"></script>
     <script src="js/player.js"></script>
+    <!-- Game Object Modules (load before main gameObjects coordinator) -->
+    <script src="js/gameObject.js"></script>
+    <script src="js/bullet.js"></script>
+    <script src="js/enemy.js"></script>
+    <script src="js/boss.js"></script>
+    <script src="js/powerUp.js"></script>
+    <script src="js/particle.js"></script>
     <script src="js/gameObjects.js"></script>
     <script src="js/backgroundRenderer.js"></script>
+    <!-- Game State Subsystems (load before main gameState) -->
+    <script src="js/collisionDetection.js"></script>
+    <script src="js/waveManager.js"></script>
+    <script src="js/bossSystem.js"></script>
     <script src="js/gameState.js"></script>
     <script src="js/game.js"></script>
 </body>
