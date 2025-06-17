@@ -72,6 +72,17 @@ body {
     vertical-align: middle;
 }
 
+/* Desktop: Show hearts, hide health bar */
+@media (min-width: 769px) {
+    #heartsContainer {
+        display: inline-flex !important;
+    }
+
+    .health-bar {
+        display: none !important;
+    }
+}
+
 .heart {
     width: 14px;
     height: 14px;
@@ -98,7 +109,7 @@ body {
     border-radius: 4px;
     overflow: hidden;
     margin-left: 6px;
-    display: inline-block;
+    display: none; /* Hidden by default on desktop */
     vertical-align: middle;
 }
 
