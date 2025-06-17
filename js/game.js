@@ -61,10 +61,51 @@ class NexusBlasters {
     }
     
     setupUI() {
-        // Start button
+        // Main menu buttons
         document.getElementById('startButton').addEventListener('click', () => {
             audioManager.playSound('buttonClick');
             this.startGame();
+        });
+
+        document.getElementById('instructionsButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showInstructions();
+        });
+
+        document.getElementById('achievementsButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showAchievements();
+        });
+
+        document.getElementById('settingsButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showSettings();
+        });
+
+        document.getElementById('creditsButton').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showCredits();
+        });
+
+        // Back buttons
+        document.getElementById('backFromInstructions').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showMainMenu();
+        });
+
+        document.getElementById('backFromAchievements').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showMainMenu();
+        });
+
+        document.getElementById('backFromSettings').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showMainMenu();
+        });
+
+        document.getElementById('backFromCredits').addEventListener('click', () => {
+            audioManager.playSound('buttonClick');
+            this.showMainMenu();
         });
 
         // Restart button
@@ -97,11 +138,13 @@ class NexusBlasters {
             this.pauseGame();
         });
 
-        // Audio toggle button
-        document.getElementById('audioBtn').addEventListener('click', () => {
-            audioManager.toggleAudio();
-            this.updateAudioButton();
-        });
+
+
+        // Settings controls
+        this.setupSettingsControls();
+
+        // Social links
+        this.setupSocialLinks();
     }
     
     loadAssets() {
@@ -134,8 +177,9 @@ class NexusBlasters {
         audioManager.playSound('gameStart');
         this.gameState.startGame(this.canvas.width, this.canvas.height);
 
-        // Hide menu
+        // Hide menu and show game UI
         document.getElementById('startScreen').classList.add('hidden');
+        document.getElementById('customPauseButton').classList.remove('hidden');
 
         // Initialize UI elements
         this.createHeartDisplay();
@@ -152,6 +196,8 @@ class NexusBlasters {
         if (this.gameState.state === 'playing') {
             this.gameState.pauseGame();
             document.getElementById('pauseScreen').classList.remove('hidden');
+        } else if (this.gameState.state === 'paused') {
+            this.resumeGame();
         }
     }
     
@@ -164,9 +210,41 @@ class NexusBlasters {
     
     showMainMenu() {
         this.gameState.showMainMenu();
-        document.getElementById('pauseScreen').classList.add('hidden');
-        document.getElementById('gameOverScreen').classList.add('hidden');
+        this.hideAllScreens();
         document.getElementById('startScreen').classList.remove('hidden');
+        document.getElementById('customPauseButton').classList.add('hidden');
+    }
+
+    showInstructions() {
+        this.hideAllScreens();
+        document.getElementById('instructionsScreen').classList.remove('hidden');
+    }
+
+    showAchievements() {
+        this.hideAllScreens();
+        document.getElementById('achievementsScreen').classList.remove('hidden');
+        this.populateAchievements();
+    }
+
+    showSettings() {
+        this.hideAllScreens();
+        document.getElementById('settingsScreen').classList.remove('hidden');
+        this.updateSettingsDisplay();
+    }
+
+    showCredits() {
+        this.hideAllScreens();
+        document.getElementById('creditsScreen').classList.remove('hidden');
+    }
+
+    hideAllScreens() {
+        const screens = [
+            'startScreen', 'instructionsScreen', 'achievementsScreen',
+            'settingsScreen', 'creditsScreen', 'pauseScreen', 'gameOverScreen'
+        ];
+        screens.forEach(screenId => {
+            document.getElementById(screenId).classList.add('hidden');
+        });
     }
     
     shareScore() {
@@ -202,6 +280,9 @@ class NexusBlasters {
     updateHeartDisplay() {
         const player = this.gameState.player;
         const heartsContainer = document.getElementById('heartsContainer');
+        const healthBar = document.getElementById('healthBar');
+        const healthBarFill = document.getElementById('healthBarFill');
+        const healthBarText = document.getElementById('healthBarText');
 
         if (!heartsContainer) {
             // Create hearts container if it doesn't exist
@@ -209,10 +290,8 @@ class NexusBlasters {
             return;
         }
 
-        // Clear existing hearts
+        // Update traditional hearts display
         heartsContainer.innerHTML = '';
-
-        // Add hearts
         for (let i = 0; i < player.getMaxHearts(); i++) {
             const heartElement = document.createElement('div');
             heartElement.className = 'heart';
@@ -224,6 +303,22 @@ class NexusBlasters {
             }
 
             heartsContainer.appendChild(heartElement);
+        }
+
+        // Update health bar (for mobile)
+        if (healthBar && healthBarFill && healthBarText) {
+            const healthPercent = (player.getHearts() / player.getMaxHearts()) * 100;
+            healthBarFill.style.width = `${healthPercent}%`;
+            healthBarText.textContent = `${player.getHearts()}/${player.getMaxHearts()}`;
+
+            // Change color based on health level
+            if (healthPercent <= 25) {
+                healthBarFill.style.background = 'linear-gradient(90deg, #ff2222, #ff4444)';
+            } else if (healthPercent <= 50) {
+                healthBarFill.style.background = 'linear-gradient(90deg, #ff8844, #ffaa44)';
+            } else {
+                healthBarFill.style.background = 'linear-gradient(90deg, #44ff44, #88ff88)';
+            }
         }
     }
 
@@ -413,11 +508,189 @@ class NexusBlasters {
         }
     }
 
-    updateAudioButton() {
-        const audioBtn = document.getElementById('audioBtn');
-        if (audioBtn) {
-            audioBtn.textContent = audioManager.enabled ? '🔊' : '🔇';
+
+
+    setupSettingsControls() {
+        // Volume controls
+        const masterVolume = document.getElementById('masterVolume');
+        const sfxVolume = document.getElementById('sfxVolume');
+        const musicVolume = document.getElementById('musicVolume');
+
+        masterVolume.addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('masterVolumeValue').textContent = `${value}%`;
+            audioManager.setMasterVolume(value / 100);
+        });
+
+        sfxVolume.addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('sfxVolumeValue').textContent = `${value}%`;
+            audioManager.setSFXVolume(value / 100);
+        });
+
+        musicVolume.addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('musicVolumeValue').textContent = `${value}%`;
+            audioManager.setMusicVolume(value / 100);
+        });
+
+        // Touch sensitivity (placeholder for future mobile support)
+        const touchSensitivity = document.getElementById('touchSensitivity');
+        touchSensitivity.addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('touchSensitivityValue').textContent = `${value}%`;
+            // Touch sensitivity setting stored for future use
+            localStorage.setItem('nexus-touch-sensitivity', value);
+        });
+
+        // Toggle buttons
+        document.getElementById('audioToggle').addEventListener('click', () => {
+            audioManager.toggleAudio();
+            this.updateSettingsDisplay();
+        });
+
+        document.getElementById('particleToggle').addEventListener('click', () => {
+            effectsManager.toggleParticles();
+            this.updateSettingsDisplay();
+        });
+
+        document.getElementById('screenShakeToggle').addEventListener('click', () => {
+            effectsManager.toggleScreenShake();
+            this.updateSettingsDisplay();
+        });
+
+        document.getElementById('hapticToggle').addEventListener('click', () => {
+            // Haptic feedback toggle (placeholder for future mobile support)
+            const currentState = localStorage.getItem('nexus-haptic-enabled') !== 'false';
+            localStorage.setItem('nexus-haptic-enabled', (!currentState).toString());
+            this.updateSettingsDisplay();
+        });
+
+        // Difficulty selector
+        document.getElementById('difficulty').addEventListener('change', (e) => {
+            this.setDifficulty(e.target.value);
+        });
+    }
+
+    updateSettingsDisplay() {
+        // Update toggle button states
+        document.getElementById('audioToggle').textContent =
+            audioManager.enabled ? '🔊 AUDIO ENABLED' : '🔇 AUDIO DISABLED';
+
+        document.getElementById('particleToggle').textContent =
+            effectsManager.particlesEnabled ? '✨ PARTICLE EFFECTS: ON' : '✨ PARTICLE EFFECTS: OFF';
+
+        document.getElementById('screenShakeToggle').textContent =
+            effectsManager.screenShakeEnabled ? '📳 SCREEN SHAKE: ON' : '📳 SCREEN SHAKE: OFF';
+
+        const hapticEnabled = localStorage.getItem('nexus-haptic-enabled') !== 'false';
+        document.getElementById('hapticToggle').textContent =
+            hapticEnabled ? '📳 HAPTIC FEEDBACK: ON' : '📳 HAPTIC FEEDBACK: OFF';
+
+        // Update button classes
+        document.getElementById('audioToggle').className =
+            `setting-button ${audioManager.enabled ? '' : 'disabled'}`;
+        document.getElementById('particleToggle').className =
+            `setting-button ${effectsManager.particlesEnabled ? '' : 'disabled'}`;
+        document.getElementById('screenShakeToggle').className =
+            `setting-button ${effectsManager.screenShakeEnabled ? '' : 'disabled'}`;
+    }
+
+    setDifficulty(level) {
+        // Store difficulty setting
+        localStorage.setItem('nexus-difficulty', level);
+
+        // Apply difficulty modifiers
+        switch (level) {
+            case 'easy':
+                GAME_CONFIG.ENEMY.SPAWN_RATE *= 1.5;
+                GAME_CONFIG.POWERUP.SPAWN_RATE *= 0.8;
+                break;
+            case 'hard':
+                GAME_CONFIG.ENEMY.SPAWN_RATE *= 0.7;
+                GAME_CONFIG.POWERUP.SPAWN_RATE *= 1.3;
+                break;
+            default: // normal
+                // Keep default values
+                break;
         }
+    }
+
+    setupSocialLinks() {
+        document.querySelectorAll('.social-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const url = button.getAttribute('data-url');
+                if (url) {
+                    window.open(url, '_blank');
+                }
+            });
+        });
+    }
+
+    populateAchievements() {
+        const achievementsList = document.getElementById('achievementsList');
+        const achievements = [
+            {
+                id: 'firstKill',
+                icon: '🎯',
+                title: 'FIRST BLOOD',
+                description: 'Destroy your first malicious agent',
+                unlocked: this.gameState.achievements.firstKill
+            },
+            {
+                id: 'combo10',
+                icon: '🔥',
+                title: 'COMBO MASTER',
+                description: 'Achieve a 10x elimination combo',
+                unlocked: this.gameState.achievements.combo10
+            },
+            {
+                id: 'combo25',
+                icon: '⚡',
+                title: 'COMBO EXPERT',
+                description: 'Achieve a 25x elimination combo',
+                unlocked: this.gameState.achievements.combo25
+            },
+            {
+                id: 'combo50',
+                icon: '💫',
+                title: 'COMBO LEGEND',
+                description: 'Achieve a 50x elimination combo',
+                unlocked: this.gameState.achievements.combo50
+            },
+            {
+                id: 'bossKiller',
+                icon: '👑',
+                title: 'BOSS SLAYER',
+                description: 'Defeat a protocol breach entity',
+                unlocked: this.gameState.achievements.bossKiller
+            },
+            {
+                id: 'survivor',
+                icon: '🛡️',
+                title: 'PROTOCOL GUARDIAN',
+                description: 'Survive 10 protocol waves',
+                unlocked: this.gameState.achievements.survivor
+            },
+            {
+                id: 'powerCollector',
+                icon: '⭐',
+                title: 'ENHANCEMENT SPECIALIST',
+                description: 'Collect 50 power-up fragments',
+                unlocked: this.gameState.achievements.powerCollector
+            }
+        ];
+
+        achievementsList.innerHTML = achievements.map(achievement => `
+            <div class="achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}">
+                <div class="achievement-icon">${achievement.unlocked ? achievement.icon : '🔒'}</div>
+                <div class="achievement-info">
+                    <div class="achievement-title">${achievement.title}</div>
+                    <div class="achievement-desc">${achievement.description}</div>
+                    ${achievement.unlocked ? '<div class="achievement-progress">COMPLETED</div>' : '<div class="achievement-progress">LOCKED</div>'}
+                </div>
+            </div>
+        `).join('');
     }
 }
 

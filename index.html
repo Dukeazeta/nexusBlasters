@@ -2,12 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nexus Blasters - Defend the Network</title>
     <meta name="description" content="Defend the Nexus network from incoming threats in this pixel art space shooter!">
-    
-    <!-- Prevent zooming on mobile -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <!-- Favicon placeholder -->
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,">
@@ -24,19 +21,23 @@
         <div id="gameUI">
             <!-- Score Display -->
             <div id="scoreDisplay">
-                <span id="scoreLabel">NEX POINTS:</span>
+                <span id="scoreLabel">NEX:</span>
                 <span id="scoreValue">0</span>
             </div>
 
             <!-- Health Display (Hearts) -->
             <div id="healthDisplay">
-                <span id="healthLabel">NODE INTEGRITY:</span>
+                <span id="healthLabel">❤️</span>
                 <div id="heartsContainer"></div>
+                <div id="healthBar" class="health-bar hidden">
+                    <div id="healthBarFill" class="health-bar-fill"></div>
+                    <span id="healthBarText" class="health-bar-text">6/6</span>
+                </div>
             </div>
 
             <!-- Wave Display -->
             <div id="waveDisplay">
-                <span id="waveLabel">PROTOCOL:</span>
+                <span id="waveLabel">WAVE:</span>
                 <span id="waveValue">1</span>
             </div>
 
@@ -65,23 +66,223 @@
             <div id="rapidFireIndicator" class="timer-display">PROOF BURST: ACTIVE</div>
         </div>
         
-        <!-- Start Screen -->
+        <!-- Main Menu Screen -->
         <div id="startScreen" class="screen">
             <div class="screen-content">
                 <h1 id="gameTitle">NEXUS PROTOCOL DEFENDER</h1>
                 <p id="gameSubtitle">Secure the Verifiable Internet</p>
-                <div id="instructions">
-                    <p>🖱️ Pilot your verification node with mouse</p>
-                    <p>📱 Touch controls for mobile nodes</p>
-                    <p>🔫 Auto-targeting malicious agents</p>
-                    <p>⚡ Collect proof fragments for upgrades</p>
-                    <p>🛡️ Maintain network consensus integrity</p>
+
+                <div class="menu-buttons">
+                    <button id="startButton" class="game-button primary">INITIALIZE NODE</button>
+                    <button id="instructionsButton" class="game-button">PROTOCOL GUIDE</button>
+                    <button id="achievementsButton" class="game-button">ACHIEVEMENTS</button>
+                    <button id="settingsButton" class="game-button">SETTINGS</button>
+                    <button id="creditsButton" class="game-button">CREDITS</button>
                 </div>
-                <button id="startButton" class="game-button">INITIALIZE NODE</button>
+
                 <div id="nexusCredit">
                     <p>Defending the <strong>Verifiable Internet</strong></p>
                     <p>#NexusPlayground @NexusLabs</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Instructions Screen -->
+        <div id="instructionsScreen" class="screen hidden">
+            <div class="screen-content">
+                <h2>PROTOCOL GUIDE</h2>
+                <div class="instructions-content">
+                    <div class="instruction-section">
+                        <h3>🎯 MISSION OBJECTIVE</h3>
+                        <p>Defend the Nexus Protocol against malicious agents attempting to compromise network consensus.</p>
+                    </div>
+
+                    <div class="instruction-section">
+                        <h3>🕹️ CONTROLS</h3>
+                        <div class="controls-grid">
+                            <div class="control-item">
+                                <span class="control-key">🖱️ MOUSE</span>
+                                <span class="control-desc">Navigate verification node</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">SPACE / CLICK</span>
+                                <span class="control-desc">Deploy proof fragments</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">ESC / P / PAUSE BTN</span>
+                                <span class="control-desc">Pause protocol</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">ARROW KEYS</span>
+                                <span class="control-desc">Alternative movement</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="instruction-section">
+                        <h3>⚡ POWER-UPS</h3>
+                        <div class="powerup-grid">
+                            <div class="powerup-item">
+                                <span class="powerup-icon">❤️</span>
+                                <span class="powerup-name">NODE INTEGRITY</span>
+                                <span class="powerup-desc">Restores system health</span>
+                            </div>
+                            <div class="powerup-item">
+                                <span class="powerup-icon">⚡</span>
+                                <span class="powerup-name">VELOCITY BOOST</span>
+                                <span class="powerup-desc">10s enhanced mobility</span>
+                            </div>
+                            <div class="powerup-item">
+                                <span class="powerup-icon">🔥</span>
+                                <span class="powerup-name">PROOF BURST</span>
+                                <span class="powerup-desc">Rapid-fire until damage</span>
+                            </div>
+                            <div class="powerup-item">
+                                <span class="powerup-icon">🛡️</span>
+                                <span class="powerup-name">CONSENSUS SHIELD</span>
+                                <span class="powerup-desc">8s invulnerability</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="instruction-section">
+                        <h3>🏆 SCORING SYSTEM</h3>
+                        <p>• Eliminate malicious agents to earn NEX points</p>
+                        <p>• Build combos for multiplier bonuses</p>
+                        <p>• Survive protocol waves for progression</p>
+                        <p>• Defeat boss entities for massive rewards</p>
+                    </div>
+                </div>
+
+                <button id="backFromInstructions" class="game-button secondary">BACK TO MENU</button>
+            </div>
+        </div>
+
+        <!-- Achievements Screen -->
+        <div id="achievementsScreen" class="screen hidden">
+            <div class="screen-content">
+                <h2>ACHIEVEMENT REGISTRY</h2>
+                <div class="achievements-content">
+                    <div id="achievementsList" class="achievements-list">
+                        <!-- Achievements will be populated by JavaScript -->
+                    </div>
+                </div>
+                <button id="backFromAchievements" class="game-button secondary">BACK TO MENU</button>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settingsScreen" class="screen hidden">
+            <div class="screen-content">
+                <h2>SYSTEM CONFIGURATION</h2>
+                <div class="settings-content">
+                    <div class="setting-group">
+                        <h3>🔊 AUDIO SETTINGS</h3>
+                        <div class="setting-item">
+                            <label for="masterVolume">Master Volume</label>
+                            <div class="volume-control">
+                                <input type="range" id="masterVolume" min="0" max="100" value="70">
+                                <span id="masterVolumeValue">70%</span>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label for="sfxVolume">Sound Effects</label>
+                            <div class="volume-control">
+                                <input type="range" id="sfxVolume" min="0" max="100" value="80">
+                                <span id="sfxVolumeValue">80%</span>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label for="musicVolume">Background Music</label>
+                            <div class="volume-control">
+                                <input type="range" id="musicVolume" min="0" max="100" value="60">
+                                <span id="musicVolumeValue">60%</span>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <button id="audioToggle" class="setting-button">🔊 AUDIO ENABLED</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>🎮 GAMEPLAY SETTINGS</h3>
+                        <div class="setting-item">
+                            <label for="difficulty">Difficulty Level</label>
+                            <select id="difficulty" class="setting-select">
+                                <option value="easy">Novice Validator</option>
+                                <option value="normal" selected>Protocol Guardian</option>
+                                <option value="hard">Consensus Master</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <button id="particleToggle" class="setting-button">✨ PARTICLE EFFECTS: ON</button>
+                        </div>
+                        <div class="setting-item">
+                            <button id="screenShakeToggle" class="setting-button">📳 SCREEN SHAKE: ON</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>📱 MOBILE SETTINGS</h3>
+                        <div class="setting-item">
+                            <label for="touchSensitivity">Touch Sensitivity</label>
+                            <div class="volume-control">
+                                <input type="range" id="touchSensitivity" min="50" max="150" value="100">
+                                <span id="touchSensitivityValue">100%</span>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <button id="hapticToggle" class="setting-button">📳 HAPTIC FEEDBACK: ON</button>
+                        </div>
+                    </div>
+                </div>
+                <button id="backFromSettings" class="game-button secondary">BACK TO MENU</button>
+            </div>
+        </div>
+
+        <!-- Credits Screen -->
+        <div id="creditsScreen" class="screen hidden">
+            <div class="screen-content">
+                <h2>DEVELOPMENT CREDITS</h2>
+                <div class="credits-content">
+                    <div class="credit-section">
+                        <h3>🏗️ NEXUS PROTOCOL DEFENDER</h3>
+                        <p>Built for the Nexus Playground Contest</p>
+                        <p>Celebrating the Verifiable Internet</p>
+                    </div>
+
+                    <div class="credit-section">
+                        <h3>🎮 GAME DEVELOPMENT</h3>
+                        <p><strong>Engine:</strong> Vanilla JavaScript & HTML5 Canvas</p>
+                        <p><strong>Graphics:</strong> Pixel Art & Procedural Effects</p>
+                        <p><strong>Audio:</strong> Web Audio API</p>
+                        <p><strong>Architecture:</strong> Modular Component System</p>
+                    </div>
+
+                    <div class="credit-section">
+                        <h3>🌐 NEXUS ECOSYSTEM</h3>
+                        <p><strong>Nexus Labs:</strong> Building the Verifiable Internet</p>
+                        <p><strong>Community:</strong> Validators & Developers</p>
+                        <p><strong>Mission:</strong> Decentralized Proof Systems</p>
+                    </div>
+
+                    <div class="credit-section">
+                        <h3>🔗 CONNECT WITH NEXUS</h3>
+                        <div class="social-links">
+                            <button class="social-button" data-url="https://nexus.xyz">🌐 nexus.xyz</button>
+                            <button class="social-button" data-url="https://twitter.com/NexusLabs">🐦 @NexusLabs</button>
+                            <button class="social-button" data-url="https://github.com/nexus-xyz">💻 GitHub</button>
+                        </div>
+                    </div>
+
+                    <div class="credit-section">
+                        <h3>🏆 CONTEST ENTRY</h3>
+                        <p>Nexus Playground Contest 2024</p>
+                        <p>Theme: Interactive Nexus Experience</p>
+                        <p>Category: Browser Game</p>
+                    </div>
+                </div>
+                <button id="backFromCredits" class="game-button secondary">BACK TO MENU</button>
             </div>
         </div>
         
@@ -110,11 +311,15 @@
         </div>
     </div>
     
-    <!-- Mobile Controls -->
-    <div id="mobileControls" class="hidden">
-        <button id="pauseBtn" class="control-btn">⏸️</button>
-        <button id="audioBtn" class="control-btn">🔊</button>
-        <div id="touchArea">Touch area for movement</div>
+    <!-- Custom Pause Button -->
+    <div id="customPauseButton" class="pause-button-container hidden">
+        <button id="pauseBtn" class="custom-pause-btn">
+            <div class="pause-icon">
+                <div class="pause-bar"></div>
+                <div class="pause-bar"></div>
+            </div>
+            <span class="pause-text">PAUSE</span>
+        </button>
     </div>
     
     <!-- Loading indicator -->
@@ -137,7 +342,6 @@
     <script src="js/bossEffects.js"></script>
     <script src="js/effectsManager.js"></script>
     <script src="js/uiAnimations.js"></script>
-    <script src="js/mobileOptimization.js"></script>
     <script src="js/assetManager.js"></script>
     <script src="js/inputManager.js"></script>
     <script src="js/player.js"></script>

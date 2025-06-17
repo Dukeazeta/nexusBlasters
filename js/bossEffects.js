@@ -146,10 +146,6 @@ class BossEffects {
     // ===== BOSS COMBAT EFFECTS =====
 
     bossHit(x, y) {
-        // Boss taking damage effect
-        if (typeof effectsManager !== 'undefined' && effectsManager.screenEffects) {
-            effectsManager.screenEffects.addScreenShake(6, 150);
-        }
 
         // Create hit sparks
         if (typeof effectsManager !== 'undefined' && effectsManager.particleSystem) {

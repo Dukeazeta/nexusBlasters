@@ -10,6 +10,10 @@ class EffectsManager {
         // Performance tracking
         this.performanceMode = this.detectPerformanceMode();
 
+        // Settings
+        this.particlesEnabled = true;
+        this.screenShakeEnabled = true;
+
         console.log('Effects Manager initialized with performance mode:', this.performanceMode);
     }
 
@@ -40,7 +44,9 @@ class EffectsManager {
     // ===== DELEGATED METHODS - SCREEN EFFECTS =====
 
     addScreenShake(intensity, duration) {
-        this.screenEffects.addScreenShake(intensity, duration);
+        if (this.screenShakeEnabled) {
+            this.screenEffects.addScreenShake(intensity, duration);
+        }
     }
 
     applyScreenShake(ctx) {
@@ -224,10 +230,24 @@ class EffectsManager {
         this.addFloatingText(centerX, centerY, 'PROTOCOL SECURED!', GAME_CONFIG.COLORS.VERIFICATION_GREEN, 24);
     }
 
+    // ===== SETTINGS CONTROLS =====
+
+    toggleParticles() {
+        this.particlesEnabled = !this.particlesEnabled;
+        console.log('Particles enabled:', this.particlesEnabled);
+    }
+
+    toggleScreenShake() {
+        this.screenShakeEnabled = !this.screenShakeEnabled;
+        console.log('Screen shake enabled:', this.screenShakeEnabled);
+    }
+
     // ===== MAIN UPDATE AND RENDER =====
 
     update(deltaTime) {
-        this.particleSystem.update(deltaTime);
+        if (this.particlesEnabled) {
+            this.particleSystem.update(deltaTime);
+        }
         this.screenEffects.update(deltaTime);
         this.visualEffects.update(deltaTime);
         this.bossEffects.update(deltaTime);
@@ -236,7 +256,9 @@ class EffectsManager {
     render(ctx) {
         // Render in order: screen effects first, then particles, then visual effects
         this.screenEffects.render(ctx, ctx.canvas.width, ctx.canvas.height);
-        this.particleSystem.render(ctx);
+        if (this.particlesEnabled) {
+            this.particleSystem.render(ctx);
+        }
         this.visualEffects.render(ctx);
         this.bossEffects.render(ctx);
     }

@@ -30,6 +30,7 @@ class Player {
         this.speedBoostDuration = 10000; // 10 seconds
         this.rapidFire = false;
         this.rapidFirePermanent = false; // Permanent until damage
+        this.rapidFireMultiplier = 1; // Progressive upgrade based on boss defeats
         this.shield = false;
         this.shieldTimer = 0;
         this.shieldDuration = 10000; // 10 seconds
@@ -183,19 +184,50 @@ class Player {
             const weaponY = this.y - this.height / 2;
 
             if (this.rapidFire) {
-                // Rapid fire mode - smaller bullets, higher rate
-                window.gameState.createPlayerBullet(leftWeaponX, weaponY, 'rapid');
-                window.gameState.createPlayerBullet(rightWeaponX, weaponY, 'rapid');
+                // Rapid fire mode - progressive bullet count based on boss defeats
+                const bulletCount = this.rapidFireMultiplier;
+
+                // Create bullets with slight spread for multiple shots
+                for (let i = 0; i < bulletCount; i++) {
+                    // Calculate spread for multiple bullets
+                    let xOffset = 0;
+                    if (bulletCount > 1) {
+                        const spreadWidth = 20; // Total spread width
+                        xOffset = (i / (bulletCount - 1) - 0.5) * spreadWidth;
+                    }
+
+                    // Create bullets from both weapon positions
+                    window.gameState.createPlayerBullet(leftWeaponX + xOffset, weaponY, 'rapid');
+                    window.gameState.createPlayerBullet(rightWeaponX + xOffset, weaponY, 'rapid');
+                }
 
                 // Enhanced muzzle flash effects for dual weapons
                 effectsManager.muzzleFlash(leftWeaponX, weaponY, 'player');
                 effectsManager.muzzleFlash(rightWeaponX, weaponY, 'player');
             } else {
-                // Normal fire mode - larger bullets
-                window.gameState.createPlayerBullet(this.x, weaponY, 'normal');
+                // Normal fire mode - progressive bullet count based on wave
+                const normalShotCount = this.getNormalShotCount();
 
-                // Enhanced muzzle flash effect
-                effectsManager.muzzleFlash(this.x, weaponY, 'player');
+                if (normalShotCount === 1) {
+                    // Single shot from center
+                    window.gameState.createPlayerBullet(this.x, weaponY, 'normal');
+                    effectsManager.muzzleFlash(this.x, weaponY, 'player');
+                } else if (normalShotCount === 2) {
+                    // Dual shots from weapon positions
+                    window.gameState.createPlayerBullet(leftWeaponX, weaponY, 'normal');
+                    window.gameState.createPlayerBullet(rightWeaponX, weaponY, 'normal');
+                    effectsManager.muzzleFlash(leftWeaponX, weaponY, 'player');
+                    effectsManager.muzzleFlash(rightWeaponX, weaponY, 'player');
+                } else {
+                    // Quad shots (4 bullets) - 2 from each weapon position with slight spread
+                    const spreadOffset = 8;
+                    window.gameState.createPlayerBullet(leftWeaponX - spreadOffset, weaponY, 'normal');
+                    window.gameState.createPlayerBullet(leftWeaponX + spreadOffset, weaponY, 'normal');
+                    window.gameState.createPlayerBullet(rightWeaponX - spreadOffset, weaponY, 'normal');
+                    window.gameState.createPlayerBullet(rightWeaponX + spreadOffset, weaponY, 'normal');
+                    effectsManager.muzzleFlash(leftWeaponX, weaponY, 'player');
+                    effectsManager.muzzleFlash(rightWeaponX, weaponY, 'player');
+                }
             }
         }
     }
@@ -220,9 +252,10 @@ class Player {
         this.hearts -= amount;
         this.hearts = Math.max(0, this.hearts);
 
-        // Losing a heart deactivates rapid fire
+        // Losing a heart deactivates rapid fire and resets multiplier
         if (this.hearts < this.maxHearts) {
             this.rapidFirePermanent = false;
+            this.rapidFireMultiplier = 1; // Reset multiplier on damage
         }
 
         return true; // Damage was taken
@@ -240,6 +273,13 @@ class Player {
 
     applyRapidFire() {
         this.rapidFirePermanent = true; // Permanent until damage
+
+        // Update rapid fire multiplier based on boss defeats
+        // Each boss defeat doubles the rapid fire effectiveness
+        const bossesDefeated = window.gameState ? window.gameState.getBossesDefeated() : 0;
+        this.rapidFireMultiplier = Math.pow(2, bossesDefeated);
+
+        console.log(`Rapid fire activated! Multiplier: ${this.rapidFireMultiplier}x (${bossesDefeated} bosses defeated)`);
     }
 
     applyShield() {
@@ -278,6 +318,19 @@ class Player {
             width: this.width,
             height: this.height
         };
+    }
+
+    getNormalShotCount() {
+        // Progressive normal shot count based on wave progression
+        const currentWave = window.gameState ? window.gameState.wave : 1;
+
+        if (currentWave >= 10) {
+            return 4; // 4 shots after wave 10
+        } else if (currentWave >= 5) {
+            return 2; // 2 shots after wave 5
+        } else {
+            return 1; // 1 shot for waves 1-4
+        }
     }
     
     render(ctx) {

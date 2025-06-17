@@ -105,6 +105,9 @@ class BossSystem {
 
             console.log(`Boss defeated: ${this.currentBoss.bossType}! Awarded ${bossPoints} points.`);
 
+            // Increment boss defeat counter for progressive rapid fire upgrades
+            this.gameState.incrementBossDefeats();
+
             // Spawn boss rewards
             this.spawnBossRewards();
 

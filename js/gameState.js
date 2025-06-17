@@ -20,6 +20,9 @@ class GameState {
         this.comboTimeout = 3000; // 3 seconds to maintain combo
         this.comboMultiplier = 1.0;
 
+        // Boss defeat tracking for progressive rapid fire upgrades
+        this.bossesDefeated = 0;
+
         // Achievement system
         this.achievements = {
             firstKill: false,
@@ -69,16 +72,25 @@ class GameState {
         this.maxCombo = 0;
         this.comboTimer = 0;
         this.comboMultiplier = 1.0;
+
+        // Reset boss defeat tracking
+        this.bossesDefeated = 0;
     }
     
     update(deltaTime, inputManager, canvasWidth, canvasHeight) {
-        if (this.state !== 'playing') return;
-
-        // Handle pause input
+        // Handle pause input (works in both playing and paused states)
         if (inputManager.isPausePressed()) {
-            this.pauseGame();
-            return;
+            if (this.state === 'playing') {
+                this.pauseGame();
+                return;
+            } else if (this.state === 'paused') {
+                this.resumeGame();
+                return;
+            }
         }
+
+        // Only update game logic when playing
+        if (this.state !== 'playing') return;
 
         // Update player
         if (this.player) {
@@ -98,6 +110,8 @@ class GameState {
         // Update legacy compatibility properties
         this.currentBoss = this.bossSystem.currentBoss;
         this.showingBossWarning = this.bossSystem.showingBossWarning;
+        this.bossWarningTimer = this.bossSystem.bossWarningTimer;
+        this.bossWarningDuration = this.bossSystem.bossWarningDuration;
 
         // Update game objects
         this.updateEnemies(deltaTime);
@@ -348,10 +362,14 @@ class GameState {
     
     pauseGame() {
         this.state = 'paused';
+        // Show pause screen
+        document.getElementById('pauseScreen').classList.remove('hidden');
     }
-    
+
     resumeGame() {
         this.state = 'playing';
+        // Hide pause screen
+        document.getElementById('pauseScreen').classList.add('hidden');
     }
     
     gameOver() {
@@ -360,6 +378,21 @@ class GameState {
     
     showMainMenu() {
         this.state = 'menu';
+    }
+
+    // Delegate method for boss type determination (for UI compatibility)
+    getBossTypeForWave(wave) {
+        return this.bossSystem.getBossTypeForWave(wave);
+    }
+
+    // Boss defeat tracking for progressive rapid fire upgrades
+    incrementBossDefeats() {
+        this.bossesDefeated++;
+        console.log(`Boss defeated! Total bosses defeated this session: ${this.bossesDefeated}`);
+    }
+
+    getBossesDefeated() {
+        return this.bossesDefeated;
     }
     
     render(ctx) {
