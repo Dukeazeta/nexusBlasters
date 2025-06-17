@@ -1,4 +1,4 @@
-# 🛡️ Nexus Protocol Defender
+# 🛡️ Nexus Blasters
 **Secure the Verifiable Internet**
 
 A pixel art space shooter built for the Nexus Playground contest. Pilot your verification node through hostile protocol space to protect the decentralized supercomputer from malicious agents threatening network consensus!
